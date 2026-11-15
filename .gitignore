@@ -12,3 +12,6 @@ android/key.properties
 ios/Pods/
 ios/.symlinks/
 *.iml
+
+# Kotlin compiler caches and crash logs
+android/.kotlin/
