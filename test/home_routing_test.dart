@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nsales_native/core/api_client.dart';
 import 'package:nsales_native/core/auth_store.dart';
+import 'package:nsales_native/core/branding.dart';
 import 'package:nsales_native/core/format.dart';
 import 'package:nsales_native/core/staff_lookups.dart';
 import 'package:nsales_native/core/user_access.dart';
@@ -32,6 +33,7 @@ Future<void> pumpHome(WidgetTester tester, Map<String, dynamic> user) async {
         Provider<ApiClient>.value(value: api),
         ChangeNotifierProvider<AuthStore>.value(value: auth),
         ChangeNotifierProvider<StaffLookups>(create: (_) => StaffLookups(api)),
+        ChangeNotifierProvider<BrandingStore>(create: (_) => BrandingStore(api, storage)),
       ],
       child: const MaterialApp(home: HomeScreen()),
     ),
@@ -96,6 +98,12 @@ void main() {
       expect(ids({'role': 'manager', 'permissions': ['manage_stock']}), ['stock', 'reports']);
     });
 
+    test('only owners with view_activity_logs see the activity log', () {
+      expect(ids({'role': 'cashier', 'permissions': ['manage_sales']}), isNot(contains('activity')));
+      expect(ids({'role': 'manager', 'permissions': ['view_activity_logs']}), contains('activity'));
+      expect(ids({'role': 'admin'}), contains('activity'));
+    });
+
     test('accounting modules need manage_statements', () {
       final accountant = ids({'role': 'accountant', 'permissions': ['manage_statements', 'manage_expenses']});
       expect(accountant, containsAll(['chart-of-accounts', 'journals', 'expenses', 'expense-categories']));
@@ -122,7 +130,7 @@ void main() {
     await tester.tap(navLabel('More'));
     await tester.pump();
     final moreList = find.descendant(of: find.byType(StaffMoreScreen), matching: find.byType(Scrollable)).first;
-    for (final label in ['Payments', 'Products', 'Expenses', 'Customers', 'Reports', 'Users']) {
+    for (final label in ['Payments', 'Products', 'Expenses', 'Customers', 'Reports', 'Activity Log', 'Users']) {
       final tile = find.widgetWithText(ListTile, label);
       await tester.scrollUntilVisible(tile, 200, scrollable: moreList);
       expect(tile, findsOneWidget, reason: label);

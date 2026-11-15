@@ -63,7 +63,7 @@ class CustomerAccountScreen extends StatelessWidget {
         const SizedBox(height: 20),
 
         _section(
-          'My NSales Account',
+          'My Account',
           [
             _item(
               context,

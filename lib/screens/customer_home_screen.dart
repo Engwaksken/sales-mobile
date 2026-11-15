@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/branding.dart';
 import '../core/api_client.dart';
 import '../core/auth_store.dart';
 import '../core/customer_api.dart';
-import '../core/config.dart';
 import 'customer_dashboard_screen.dart';
 import 'customer_orders_screen.dart';
 import 'customer_products_screen.dart';
@@ -57,16 +57,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         titleSpacing: 16,
         title: Row(
           children: [
-            Image.asset(
-              AppConfig.logoAsset,
-              width: 36,
-              height: 36,
-              fit: BoxFit.contain,
-            ),
+            const BrandLogo(size: 34, favicon: true),
             const SizedBox(width: 9),
-            const Text(
-              AppConfig.appName,
-              style: TextStyle(fontWeight: FontWeight.w900),
+            Flexible(
+              child: Text(
+                context.brandName,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
             ),
           ],
         ),

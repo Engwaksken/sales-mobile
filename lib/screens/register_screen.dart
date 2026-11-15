@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/branding.dart';
 import '../core/auth_store.dart';
 import '../widgets/auth_brand.dart';
 import '../widgets/api_status_banner.dart';
@@ -86,10 +87,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(height: 14),
             const ApiStatusBanner(),
             const SizedBox(height: 4),
-            const Text(
-              'Create your NSales account',
+            Text(
+              'Create your ${context.brandName} account',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 6),
             const Text(

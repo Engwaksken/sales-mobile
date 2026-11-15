@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../core/config.dart';
+import '../core/branding.dart';
 
 class AuthBrand extends StatelessWidget {
   const AuthBrand({
@@ -28,15 +28,8 @@ class AuthBrand extends StatelessWidget {
             ),
           ],
         ),
-        child: Image.asset(
-          AppConfig.logoAsset,
-          fit: BoxFit.contain,
-          errorBuilder: (_, _, _) => Icon(
-            Icons.point_of_sale,
-            size: size * .55,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
+        // The logo uploaded by the admin, or the bundled one until it loads.
+        child: BrandLogo(size: size * .84),
       ),
     );
   }

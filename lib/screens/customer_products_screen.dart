@@ -55,7 +55,7 @@ class _CustomerProductsScreenState
           TextField(
             onChanged: (value) => setState(() => query = value),
             decoration: InputDecoration(
-              hintText: 'Search NSales products',
+              hintText: 'Search products',
               prefixIcon: const Icon(Icons.search),
               filled: true,
               border: OutlineInputBorder(

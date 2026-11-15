@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/branding.dart';
 import '../core/auth_store.dart';
 import '../widgets/auth_brand.dart';
 import '../widgets/api_status_banner.dart';
@@ -86,10 +87,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 16),
                   const ApiStatusBanner(),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Welcome to NSales',
+                  Text(
+                    'Welcome to ${context.brandName}',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
                     ),

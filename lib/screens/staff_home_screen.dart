@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
 import '../core/auth_store.dart';
-import '../core/config.dart';
+import '../core/branding.dart';
 import '../core/customer_api.dart';
 import '../core/staff_lookups.dart';
 import '../core/user_access.dart';
@@ -11,6 +11,7 @@ import 'customer_notifications_screen.dart';
 import 'dashboard_screen.dart';
 import 'expenses_screen.dart';
 import 'resource_list_screen.dart';
+import 'staff/activity_screens.dart';
 import 'staff/catalog_screens.dart';
 import 'staff/chat_screens.dart';
 import 'staff/order_screens.dart';
@@ -125,6 +126,11 @@ final List<StaffModule> staffModules = [
     builder: (_) => _viewOnly('accounting-journals', 'Journals', Icons.menu_book),
   ),
   StaffModule(
+    id: 'activity', label: 'Activity Log', group: 'Admin', permission: 'view_activity_logs',
+    icon: Icons.fact_check_outlined, selectedIcon: Icons.fact_check,
+    builder: (_) => const ActivityLogScreen(),
+  ),
+  StaffModule(
     id: 'efris', label: 'EFRIS Invoices', group: 'Admin', permission: 'manage_settings', viewOnly: true,
     icon: Icons.verified_outlined, selectedIcon: Icons.verified,
     builder: (_) => _viewOnly('efris-invoices', 'EFRIS Invoices', Icons.verified),
@@ -172,6 +178,7 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
     notificationsApi = CustomerApi(context.read<ApiClient>());
     // Fresh pick-lists for whoever just signed in.
     context.read<StaffLookups>().load();
+    context.read<BrandingStore>().refresh();
     loadUnread();
   }
 
@@ -209,11 +216,11 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
         titleSpacing: 16,
         title: Row(
           children: [
-            Image.asset(AppConfig.logoAsset, width: 34, height: 34, fit: BoxFit.contain),
+            const BrandLogo(size: 32, favicon: true),
             const SizedBox(width: 9),
             Flexible(
               child: Text(
-                safeIndex == 0 || safeIndex == pages.length - 1 ? AppConfig.appName : inBar[safeIndex - 1].label,
+                safeIndex == 0 || safeIndex == pages.length - 1 ? context.brandName : inBar[safeIndex - 1].label,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),

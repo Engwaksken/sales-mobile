@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/branding.dart';
 import '../core/auth_store.dart';
 import '../widgets/auth_brand.dart';
 import '../widgets/api_status_banner.dart';
@@ -71,10 +72,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Enter your account email and NSales will send a 6-digit verification code.',
+            Text(
+              'Enter your account email and ${context.brandName} will send a 6-digit verification code.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFF64748B)),
+              style: const TextStyle(color: Color(0xFF64748B)),
             ),
             const SizedBox(height: 24),
             TextField(
