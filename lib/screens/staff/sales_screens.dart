@@ -3,12 +3,18 @@ import 'package:provider/provider.dart';
 
 import '../../core/api_client.dart';
 import '../../core/format.dart';
+import '../../core/document_sharing.dart';
 import '../../core/staff_lookups.dart';
 import '../../widgets/staff_ui.dart';
 import 'pos_screen.dart';
 import 'tender_editor.dart';
 
-const saleStatuses = {'paid': 'Paid', 'partial': 'Part paid', 'pending': 'Credit', 'outstanding': 'Owing'};
+const saleStatuses = {
+  'paid': 'Paid',
+  'partial': 'Part paid',
+  'pending': 'Credit',
+  'outstanding': 'Owing',
+};
 
 /// Sales list with status filter and a "New sale" button that opens the POS.
 class SalesScreen extends StatefulWidget {
@@ -30,10 +36,16 @@ class _SalesScreenState extends State<SalesScreen> {
   late String? to = widget.to;
 
   Future<void> newSale() async {
-    final saleId = await Navigator.push<int>(context, MaterialPageRoute(builder: (_) => const PosScreen()));
+    final saleId = await Navigator.push<int>(
+      context,
+      MaterialPageRoute(builder: (_) => const PosScreen()),
+    );
     if (saleId == null || !mounted) return;
     list.reload();
-    Navigator.push(context, MaterialPageRoute(builder: (_) => SaleDetailScreen(saleId: saleId)));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => SaleDetailScreen(saleId: saleId)),
+    );
   }
 
   @override
@@ -55,13 +67,21 @@ class _SalesScreenState extends State<SalesScreen> {
         header: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FilterChips(options: saleStatuses, selected: status, onSelected: (v) => setState(() => status = v)),
+            FilterChips(
+              options: saleStatuses,
+              selected: status,
+              onSelected: (v) => setState(() => status = v),
+            ),
             if (from != null || to != null)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: InputChip(
                   avatar: const Icon(Icons.date_range, size: 16),
-                  label: Text(from == to ? formatDate(from) : '${formatDate(from)} – ${formatDate(to)}'),
+                  label: Text(
+                    from == to
+                        ? formatDate(from)
+                        : '${formatDate(from)} – ${formatDate(to)}',
+                  ),
                   onDeleted: () => setState(() {
                     from = null;
                     to = null;
@@ -73,12 +93,20 @@ class _SalesScreenState extends State<SalesScreen> {
         itemBuilder: (context, row) => RecordCard(
           title: '${row['invoice_no'] ?? 'Sale #${row['id']}'}',
           subtitle: '${row['product_names'] ?? ''}',
-          caption: [row['customer_name'], formatDate(row['sale_date'])].where((s) => s != null && '$s'.isNotEmpty).join(' · '),
+          caption: [
+            row['customer_name'],
+            formatDate(row['sale_date']),
+          ].where((s) => s != null && '$s'.isNotEmpty).join(' · '),
           amount: money(row['total_amount']),
           status: '${row['payment_status']}',
           statusLabel: saleStatuses[row['payment_status']],
           onTap: () async {
-            await Navigator.push(context, MaterialPageRoute(builder: (_) => SaleDetailScreen(saleId: row['id'] as int)));
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SaleDetailScreen(saleId: row['id'] as int),
+              ),
+            );
             list.reload();
           },
         ),
@@ -116,7 +144,11 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
     try {
       final response = await api.get('/staff/sales/${widget.saleId}');
       if (!mounted) return;
-      setState(() => sale = Map<String, dynamic>.from((response.data as Map)['data'] as Map));
+      setState(
+        () => sale = Map<String, dynamic>.from(
+          (response.data as Map)['data'] as Map,
+        ),
+      );
     } catch (e) {
       if (mounted) setState(() => error = api.messageFromError(e));
     } finally {
@@ -141,7 +173,37 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
     final payments = (sale['payments'] as List?) ?? const [];
 
     return Scaffold(
-      appBar: AppBar(title: Text('${sale['invoice_no'] ?? 'Sale'}')),
+      appBar: AppBar(
+        title: Text('${sale['invoice_no'] ?? 'Sale'}'),
+        actions: [
+          if (!loading && error == null)
+            IconButton(
+              tooltip: 'Share invoice',
+              icon: const Icon(Icons.share_outlined),
+              onPressed: () => shareDocument(
+                'Invoice ${sale['invoice_no'] ?? ''}',
+                [
+                  'INVOICE ${sale['invoice_no'] ?? ''}',
+                  'Customer: ${sale['customer_name'] ?? 'Walk-in'}',
+                  'Date: ${formatDate(sale['sale_date'])}',
+                  '',
+                  for (final raw in items)
+                    () {
+                      final item = Map<String, dynamic>.from(raw as Map);
+                      return '${item['name']} — ${formatNumber(item['quantity'])} × ${money(item['price'])} = ${money(item['total'])}';
+                    }(),
+                  '',
+                  if (toDouble(sale['discount']) > 0)
+                    'Discount: -${money(sale['discount'])}',
+                  if (toDouble(sale['vat']) > 0) 'VAT: ${money(sale['vat'])}',
+                  'Total: ${money(sale['total_amount'])}',
+                  'Paid: ${money(sale['paid_amount'])}',
+                  'Balance: ${money(sale['balance_amount'])}',
+                ],
+              ),
+            ),
+        ],
+      ),
       bottomNavigationBar: !loading && error == null && balance > 0.005
           ? SafeArea(
               child: Padding(
@@ -165,7 +227,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
             children: [
               SectionCard(
                 title: 'Summary',
-                trailing: StatusPill('${sale['payment_status']}', label: saleStatuses[sale['payment_status']]),
+                trailing: StatusPill(
+                  '${sale['payment_status']}',
+                  label: saleStatuses[sale['payment_status']],
+                ),
                 children: [
                   InfoRow('Customer', '${sale['customer_name'] ?? ''}'),
                   InfoRow('Phone', sale['customer_phone']?.toString()),
@@ -180,22 +245,38 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                 title: 'Items',
                 children: [
                   for (final raw in items)
-                    Builder(builder: (context) {
-                      final item = Map<String, dynamic>.from(raw as Map);
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        dense: true,
-                        title: Text('${item['name']}', style: const TextStyle(fontWeight: FontWeight.w700)),
-                        subtitle: Text('${formatNumber(item['quantity'])} × ${money(item['price'])}'),
-                        trailing: Text(money(item['total']), style: const TextStyle(fontWeight: FontWeight.w800)),
-                      );
-                    }),
+                    Builder(
+                      builder: (context) {
+                        final item = Map<String, dynamic>.from(raw as Map);
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                          title: Text(
+                            '${item['name']}',
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          subtitle: Text(
+                            '${formatNumber(item['quantity'])} × ${money(item['price'])}',
+                          ),
+                          trailing: Text(
+                            money(item['total']),
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        );
+                      },
+                    ),
                   const Divider(),
-                  if (toDouble(sale['discount']) > 0) InfoRow('Discount', '- ${money(sale['discount'])}'),
-                  if (toDouble(sale['vat']) > 0) InfoRow('VAT', money(sale['vat'])),
+                  if (toDouble(sale['discount']) > 0)
+                    InfoRow('Discount', '- ${money(sale['discount'])}'),
+                  if (toDouble(sale['vat']) > 0)
+                    InfoRow('VAT', money(sale['vat'])),
                   InfoRow('Total', money(sale['total_amount']), bold: true),
                   InfoRow('Paid', money(sale['paid_amount'])),
-                  InfoRow('Balance', money(sale['balance_amount']), bold: balance > 0),
+                  InfoRow(
+                    'Balance',
+                    money(sale['balance_amount']),
+                    bold: balance > 0,
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -203,20 +284,57 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                 title: 'Payments',
                 children: [
                   if (payments.isEmpty)
-                    const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Text('No payments yet.', style: TextStyle(color: kMuted)))
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        'No payments yet.',
+                        style: TextStyle(color: kMuted),
+                      ),
+                    )
                   else
                     for (final raw in payments)
-                      Builder(builder: (context) {
-                        final p = Map<String, dynamic>.from(raw as Map);
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          dense: true,
-                          leading: const Icon(Icons.receipt_long),
-                          title: Text('${p['receipt_no'] ?? 'Receipt'} · ${p['method'] ?? ''}'),
-                          subtitle: Text(formatDate(p['created_at'], withTime: true)),
-                          trailing: Text(money(p['amount']), style: const TextStyle(fontWeight: FontWeight.w800)),
-                        );
-                      }),
+                      Builder(
+                        builder: (context) {
+                          final p = Map<String, dynamic>.from(raw as Map);
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            dense: true,
+                            leading: const Icon(Icons.receipt_long),
+                            title: Text(
+                              '${p['receipt_no'] ?? 'Receipt'} · ${p['method'] ?? ''}',
+                            ),
+                            subtitle: Text(
+                              formatDate(p['created_at'], withTime: true),
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  money(p['amount']),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Share receipt',
+                                  icon: const Icon(Icons.share_outlined),
+                                  onPressed: () => shareDocument(
+                                    'Payment receipt ${p['receipt_no'] ?? ''}',
+                                    [
+                                      'PAYMENT RECEIPT ${p['receipt_no'] ?? ''}',
+                                      'Invoice: ${sale['invoice_no'] ?? ''}',
+                                      'Customer: ${sale['customer_name'] ?? 'Walk-in'}',
+                                      'Amount: ${money(p['amount'])}',
+                                      'Method: ${p['method'] ?? ''}',
+                                      'Date: ${formatDate(p['created_at'], withTime: true)}',
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                 ],
               ),
               const SizedBox(height: 80),
@@ -262,9 +380,15 @@ class _RecordPaymentSheetState extends State<RecordPaymentSheet> {
   Future<void> save() async {
     final result = await runApi(
       context,
-      (api) => api.post('/staff/sales/${widget.sale['id']}/payments', data: {
-        'payments': tenders.where((t) => t.value > 0).map((t) => t.toJson()).toList(),
-      }),
+      (api) => api.post(
+        '/staff/sales/${widget.sale['id']}/payments',
+        data: {
+          'payments': tenders
+              .where((t) => t.value > 0)
+              .map((t) => t.toJson())
+              .toList(),
+        },
+      ),
       busy: (b) => setState(() => saving = b),
     );
     if (result == null || !mounted) return;
@@ -277,19 +401,41 @@ class _RecordPaymentSheetState extends State<RecordPaymentSheet> {
   Widget build(BuildContext context) {
     final methods = context.watch<StaffLookups>().paymentMethods;
     return Padding(
-      padding: EdgeInsets.fromLTRB(16, 0, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        MediaQuery.of(context).viewInsets.bottom + 16,
+      ),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Record payment', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-            Text('${widget.sale['invoice_no']} · balance ${money(balance)}', style: const TextStyle(color: kMuted)),
+            const Text(
+              'Record payment',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+            ),
+            Text(
+              '${widget.sale['invoice_no']} · balance ${money(balance)}',
+              style: const TextStyle(color: kMuted),
+            ),
             const SizedBox(height: 14),
-            TenderEditor(tenders: tenders, methods: methods, suggested: balance, onChanged: () => setState(() {})),
+            TenderEditor(
+              tenders: tenders,
+              methods: methods,
+              suggested: balance,
+              onChanged: () => setState(() {}),
+            ),
             const SizedBox(height: 8),
             FilledButton(
               onPressed: saving ? null : save,
-              child: saving ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save payment'),
+              child: saving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Save payment'),
             ),
           ],
         ),
@@ -312,13 +458,23 @@ class PaymentsScreen extends StatelessWidget {
       bottomPadding: 24,
       itemBuilder: (context, row) => RecordCard(
         title: '${row['receipt_no'] ?? 'Receipt #${row['id']}'}',
-        subtitle: [row['invoice_no'], row['customer_name'] ?? 'Walk-in', row['method']].where((s) => s != null).join(' · '),
+        subtitle: [
+          row['invoice_no'],
+          row['customer_name'] ?? 'Walk-in',
+          row['method'],
+        ].where((s) => s != null).join(' · '),
         caption: formatDate(row['created_at'], withTime: true),
         amount: money(row['amount']),
         status: '${row['status']}',
         onTap: row['sale_id'] == null
             ? null
-            : () => Navigator.push(context, MaterialPageRoute(builder: (_) => SaleDetailScreen(saleId: row['sale_id'] as int))),
+            : () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      SaleDetailScreen(saleId: row['sale_id'] as int),
+                ),
+              ),
       ),
     );
   }

@@ -57,6 +57,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   DateTime date = DateTime.now();
   String? paymentMethod = 'Cash';
   String? category;
+  int? branchId;
 
   /// Bumped when a scan changes the dropdowns, so they show the new values.
   int _scanCount = 0;
@@ -184,6 +185,11 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     setState(() => saving = true);
     final api = context.read<ApiClient>();
     final lookups = context.read<StaffLookups>();
+    final chosenBranchId =
+        branchId ??
+        (lookups.isAdmin && lookups.branches.length == 1
+            ? lookups.branches.first.id
+            : null);
 
     try {
       final fields = <String, dynamic>{
@@ -198,6 +204,8 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         else
           'category': category,
         'description': description.text.trim(),
+        if (lookups.isAdmin && chosenBranchId != null)
+          'branch_id': chosenBranchId,
       };
 
       if (receipt != null) {
@@ -207,7 +215,13 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         );
       }
 
-      await api.post('/expenses', data: FormData.fromMap(fields));
+      // Use JSON for the normal form submission. Some PHP/FastCGI setups do
+      // not parse multipart requests reliably unless a file is actually sent.
+      // Keep multipart only when uploading a receipt image.
+      await api.post(
+        '/expenses',
+        data: receipt == null ? fields : FormData.fromMap(fields),
+      );
       // A typed category is now on the list.
       if (category == _newCategory) lookups.load();
 
@@ -228,6 +242,11 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     final lookups = context.watch<StaffLookups>();
     final methods = lookups.paymentMethods;
     final categories = lookups.expenseCategoryNames;
+    final selectedBranchId =
+        branchId ??
+        (lookups.isAdmin && lookups.branches.length == 1
+            ? lookups.branches.first.id
+            : null);
     if (paymentMethod != null && !methods.contains(paymentMethod)) {
       paymentMethod = null;
     }
@@ -321,6 +340,30 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            if (lookups.isAdmin) ...[
+              DropdownButtonFormField<int>(
+                key: ValueKey(
+                  'expense-branch-$selectedBranchId-${lookups.branches.length}',
+                ),
+                initialValue: selectedBranchId,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Branch *',
+                  prefixIcon: Icon(Icons.store_outlined),
+                ),
+                hint: const Text('Choose a branch'),
+                items: [
+                  for (final branch in lookups.branches)
+                    DropdownMenuItem(
+                      value: branch.id,
+                      child: Text(branch.name),
+                    ),
+                ],
+                validator: (value) => value == null ? 'Choose a branch' : null,
+                onChanged: (value) => setState(() => branchId = value),
+              ),
+              const SizedBox(height: 14),
+            ],
             TextFormField(
               controller: amount,
               keyboardType: const TextInputType.numberWithOptions(

@@ -3,12 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
 import '../core/customer_api.dart';
+import '../core/document_sharing.dart';
 
 class CustomerOrderDetailScreen extends StatefulWidget {
-  const CustomerOrderDetailScreen({
-    super.key,
-    required this.orderId,
-  });
+  const CustomerOrderDetailScreen({super.key, required this.orderId});
 
   final int orderId;
 
@@ -17,8 +15,7 @@ class CustomerOrderDetailScreen extends StatefulWidget {
       _CustomerOrderDetailScreenState();
 }
 
-class _CustomerOrderDetailScreenState
-    extends State<CustomerOrderDetailScreen> {
+class _CustomerOrderDetailScreenState extends State<CustomerOrderDetailScreen> {
   bool loading = true;
   Map<String, dynamic> order = {};
 
@@ -43,9 +40,7 @@ class _CustomerOrderDetailScreenState
   @override
   Widget build(BuildContext context) {
     if (loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final timeline = List<dynamic>.from(order['timeline'] ?? []);
@@ -54,9 +49,32 @@ class _CustomerOrderDetailScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          '${order['order_number'] ?? order['order_id'] ?? 'Order'}',
-        ),
+        title: Text('${order['order_number'] ?? order['order_id'] ?? 'Order'}'),
+        actions: [
+          IconButton(
+            tooltip: 'Share invoice',
+            icon: const Icon(Icons.share_outlined),
+            onPressed: () => shareDocument(
+              'Invoice ${order['order_number'] ?? order['order_id'] ?? ''}',
+              [
+                'INVOICE ${order['order_number'] ?? order['order_id'] ?? ''}',
+                'Customer: ${order['customer_name'] ?? ''}',
+                'Status: ${order['status_label'] ?? order['status'] ?? ''}',
+                '',
+                for (final raw in items)
+                  () {
+                    final item = Map<String, dynamic>.from(raw as Map);
+                    return '${item['product_name'] ?? 'Product'} — Qty ${item['quantity'] ?? 0} — UGX ${item['subtotal'] ?? item['price'] ?? 0}';
+                  }(),
+                '',
+                'Total: UGX ${order['total_amount'] ?? 0}',
+                'Paid: UGX ${order['amount_paid'] ?? 0}',
+                'Balance: UGX ${order['balance_amount'] ?? 0}',
+                'Delivery address: ${order['address'] ?? order['delivery_location'] ?? ''}',
+              ],
+            ),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: load,
@@ -86,16 +104,12 @@ class _CustomerOrderDetailScreenState
 
             const Text(
               'Track Order',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
 
             ...timeline.asMap().entries.map((entry) {
-              final step =
-                  Map<String, dynamic>.from(entry.value as Map);
+              final step = Map<String, dynamic>.from(entry.value as Map);
               final done = step['done'] == true;
               final active = step['active'] == true;
 
@@ -162,10 +176,7 @@ class _CustomerOrderDetailScreenState
             const SizedBox(height: 8),
             const Text(
               'Items',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
             ...items.map((raw) {
@@ -190,15 +201,11 @@ class _CustomerOrderDetailScreenState
               const SizedBox(height: 16),
               const Text(
                 'Payment Receipts',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 8),
               ...receipts.map((raw) {
-                final receipt =
-                    Map<String, dynamic>.from(raw as Map);
+                final receipt = Map<String, dynamic>.from(raw as Map);
                 return Card(
                   elevation: 0,
                   child: ListTile(
@@ -211,9 +218,18 @@ class _CustomerOrderDetailScreenState
                     subtitle: Text(
                       '${receipt['payment_method'] ?? receipt['method'] ?? ''}',
                     ),
-                    trailing: Text(
-                      'UGX ${receipt['amount_paid'] ?? receipt['amount'] ?? 0}',
-                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    trailing: IconButton(
+                      tooltip: 'Share receipt',
+                      icon: const Icon(Icons.share_outlined),
+                      onPressed: () => shareDocument(
+                        'Payment receipt ${receipt['receipt_number'] ?? receipt['receipt_no'] ?? ''}',
+                        [
+                          'PAYMENT RECEIPT ${receipt['receipt_number'] ?? receipt['receipt_no'] ?? ''}',
+                          'Invoice: ${order['order_number'] ?? order['order_id'] ?? ''}',
+                          'Amount: UGX ${receipt['amount_paid'] ?? receipt['amount'] ?? 0}',
+                          'Method: ${receipt['payment_method'] ?? receipt['method'] ?? ''}',
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -227,7 +243,10 @@ class _CustomerOrderDetailScreenState
                 padding: const EdgeInsets.all(14),
                 child: Column(
                   children: [
-                    _row('Delivery Address', '${order['address'] ?? order['delivery_location'] ?? '—'}'),
+                    _row(
+                      'Delivery Address',
+                      '${order['address'] ?? order['delivery_location'] ?? '—'}',
+                    ),
                     _row('Payment Method', '${order['payment_method'] ?? '—'}'),
                     _row('Amount Paid', 'UGX ${order['amount_paid'] ?? 0}'),
                     _row('Balance', 'UGX ${order['balance_amount'] ?? 0}'),
