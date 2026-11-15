@@ -9,15 +9,18 @@ import '../../core/format.dart';
 import '../../core/staff_lookups.dart';
 import '../../widgets/staff_ui.dart';
 
-enum FieldKind { text, email, phone, multiline, status, toggle }
+enum FieldKind { text, email, phone, multiline, status, toggle, choice }
 
 class CatalogField {
-  const CatalogField(this.key, this.label, {this.kind = FieldKind.text, this.required = false});
+  const CatalogField(this.key, this.label, {this.kind = FieldKind.text, this.required = false, this.options = const []});
 
   final String key;
   final String label;
   final FieldKind kind;
   final bool required;
+
+  /// Values for [FieldKind.choice]; the first is the default.
+  final List<String> options;
 }
 
 /// How one simple master-data module is listed and edited.
@@ -96,6 +99,23 @@ class CatalogConfig {
     title: (r) => '${r['name']}',
     subtitle: (r) => _join([r['contact_name'], r['phone']]),
     status: (r) => '${r['status']}',
+  );
+
+  static final unitTypes = CatalogConfig(
+    resource: 'unit-types',
+    singular: 'Unit',
+    plural: 'units',
+    icon: Icons.straighten,
+    refreshesLookups: true,
+    fields: const [
+      CatalogField('name', 'Name', required: true),
+      CatalogField('abbreviation', 'Short name (shown on stock)', required: true),
+      CatalogField('category', 'Group', kind: FieldKind.choice, options: ['Count', 'Weight', 'Volume', 'Length', 'Area', 'Other']),
+      CatalogField('is_active', 'Show in stock forms', kind: FieldKind.toggle),
+    ],
+    title: (r) => '${r['name']} (${r['abbreviation']})',
+    subtitle: (r) => '${r['category'] ?? ''}',
+    status: (r) => r['is_active'] == true ? 'active' : 'inactive',
   );
 
   static final expenseCategories = CatalogConfig(
@@ -177,12 +197,15 @@ class _CatalogFormScreenState extends State<CatalogFormScreen> {
   final form = GlobalKey<FormState>();
   late final Map<String, TextEditingController> text = {
     for (final f in widget.config.fields)
-      if (f.kind != FieldKind.status && f.kind != FieldKind.toggle) f.key: TextEditingController(text: '${widget.record?[f.key] ?? ''}'),
+      if (f.kind != FieldKind.status && f.kind != FieldKind.toggle && f.kind != FieldKind.choice)
+        f.key: TextEditingController(text: '${widget.record?[f.key] ?? ''}'),
   };
   late final Map<String, dynamic> choice = {
     for (final f in widget.config.fields)
       if (f.kind == FieldKind.status) f.key: '${widget.record?[f.key] ?? 'active'}'
-      else if (f.kind == FieldKind.toggle) f.key: widget.record?[f.key] ?? true,
+      else if (f.kind == FieldKind.toggle) f.key: widget.record?[f.key] ?? true
+      else if (f.kind == FieldKind.choice)
+        f.key: f.options.contains(widget.record?[f.key]) ? widget.record![f.key] : f.options.first,
   };
   bool saving = false;
 
@@ -245,6 +268,13 @@ class _CatalogFormScreenState extends State<CatalogFormScreen> {
             DropdownMenuItem(value: 'active', child: Text('Active')),
             DropdownMenuItem(value: 'inactive', child: Text('Inactive')),
           ],
+          onChanged: (v) => setState(() => choice[f.key] = v),
+        );
+      case FieldKind.choice:
+        return DropdownButtonFormField<String>(
+          initialValue: '${choice[f.key]}',
+          decoration: InputDecoration(labelText: f.label),
+          items: [for (final o in f.options) DropdownMenuItem(value: o, child: Text(o))],
           onChanged: (v) => setState(() => choice[f.key] = v),
         );
       case FieldKind.toggle:

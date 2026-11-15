@@ -9,7 +9,9 @@ import 'sales_screens.dart';
 
 /// Online orders with a stage filter.
 class OrdersScreen extends StatefulWidget {
-  const OrdersScreen({super.key});
+  const OrdersScreen({super.key, this.initialStatus});
+
+  final String? initialStatus;
 
   @override
   State<OrdersScreen> createState() => _OrdersScreenState();
@@ -17,7 +19,7 @@ class OrdersScreen extends StatefulWidget {
 
 class _OrdersScreenState extends State<OrdersScreen> {
   final list = PagedListController();
-  String? status;
+  late String? status = widget.initialStatus;
 
   @override
   void initState() {

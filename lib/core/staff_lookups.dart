@@ -31,6 +31,23 @@ class KeyLabel {
   }
 }
 
+/// A unit stock can be counted in; [value] is what stock rows store (e.g. "pcs").
+class UnitOption {
+  const UnitOption(this.value, this.label, this.category);
+
+  final String value;
+  final String label;
+  final String category;
+
+  static List<UnitOption> listFrom(dynamic raw) {
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map>()
+        .map((m) => UnitOption('${m['value']}', '${m['label']}', '${m['category'] ?? 'Other'}'))
+        .toList();
+  }
+}
+
 /// Branches, categories, suppliers, payment methods and stage names for staff forms.
 /// Loaded once per sign-in from /staff/lookups and refreshed after catalog edits.
 class StaffLookups extends ChangeNotifier {
@@ -45,6 +62,7 @@ class StaffLookups extends ChangeNotifier {
   List<Option> categories = const [];
   List<Option> suppliers = const [];
   List<Option> expenseCategories = const [];
+  List<UnitOption> unitTypes = const [];
   List<String> paymentMethods = const ['Cash', 'Mobile Money', 'Card', 'Bank Transfer', 'Cheque'];
   List<KeyLabel> orderStages = const [];
   List<KeyLabel> stockIssueTypes = const [];
@@ -59,6 +77,7 @@ class StaffLookups extends ChangeNotifier {
       categories = Option.listFrom(data['categories']);
       suppliers = Option.listFrom(data['suppliers']);
       expenseCategories = Option.listFrom(data['expense_categories']);
+      unitTypes = UnitOption.listFrom(data['unit_types']);
       if (data['payment_methods'] is List) {
         paymentMethods = (data['payment_methods'] as List).map((m) => '$m').toList();
       }

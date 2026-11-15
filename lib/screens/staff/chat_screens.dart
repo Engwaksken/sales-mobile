@@ -7,7 +7,9 @@ import '../../widgets/staff_ui.dart';
 
 /// Customer support conversations.
 class ChatsScreen extends StatefulWidget {
-  const ChatsScreen({super.key});
+  const ChatsScreen({super.key, this.initialStatus = 'open'});
+
+  final String? initialStatus;
 
   @override
   State<ChatsScreen> createState() => _ChatsScreenState();
@@ -15,7 +17,7 @@ class ChatsScreen extends StatefulWidget {
 
 class _ChatsScreenState extends State<ChatsScreen> {
   final list = PagedListController();
-  String? status = 'open';
+  late String? status = widget.initialStatus;
 
   @override
   Widget build(BuildContext context) {

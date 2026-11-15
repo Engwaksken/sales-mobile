@@ -7,7 +7,9 @@ import '../../widgets/staff_ui.dart';
 
 /// Stock levels and stock issues (damages, gratis, staff consumption).
 class StockScreen extends StatefulWidget {
-  const StockScreen({super.key});
+  const StockScreen({super.key, this.lowOnly = false});
+
+  final bool lowOnly;
 
   @override
   State<StockScreen> createState() => _StockScreenState();
@@ -17,7 +19,7 @@ class _StockScreenState extends State<StockScreen> with SingleTickerProviderStat
   late final TabController tabs = TabController(length: 2, vsync: this)..addListener(() => setState(() {}));
   final levels = PagedListController();
   final issues = PagedListController();
-  bool lowOnly = false;
+  late bool lowOnly = widget.lowOnly;
 
   @override
   void initState() {
@@ -205,7 +207,7 @@ class ReceiveStockScreen extends StatefulWidget {
 class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
   final form = GlobalKey<FormState>();
   final quantity = TextEditingController();
-  final unit = TextEditingController();
+  String? unit;
   final cost = TextEditingController();
   final selling = TextEditingController();
   Map<String, dynamic>? product;
@@ -216,7 +218,7 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
 
   @override
   void dispose() {
-    for (final c in [quantity, unit, cost, selling]) {
+    for (final c in [quantity, cost, selling]) {
       c.dispose();
     }
     super.dispose();
@@ -235,7 +237,7 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
         if (supplierId != null) 'supplier_id': supplierId,
         if (lookups.isAdmin) 'branch_ids': branches.toList(),
         'quantity': toDouble(quantity.text),
-        if (unit.text.trim().isNotEmpty) 'unit_type': unit.text.trim(),
+        if (unit != null && unit!.isNotEmpty) 'unit_type': unit,
         if (cost.text.trim().isNotEmpty) 'cost_price': toDouble(cost.text),
         if (selling.text.trim().isNotEmpty) 'selling_price': toDouble(selling.text),
         if (expiry != null) 'expiry_date': isoDate(expiry!),
@@ -264,20 +266,14 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
             const SizedBox(height: 14),
             BranchChooser(selected: branches, multiple: true, onChanged: (s) => setState(() => branches = s)),
             const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: quantity,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Quantity *'),
-                    validator: (v) => toDouble(v) > 0 ? null : 'Enter a quantity',
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(child: TextFormField(controller: unit, decoration: const InputDecoration(labelText: 'Unit (pcs, kg...)'))),
-              ],
+            TextFormField(
+              controller: quantity,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Quantity *'),
+              validator: (v) => toDouble(v) > 0 ? null : 'Enter a quantity',
             ),
+            const SizedBox(height: 14),
+            UnitPicker(value: unit, onChanged: (v) => setState(() => unit = v)),
             const SizedBox(height: 14),
             Row(
               children: [
@@ -351,7 +347,7 @@ class _StockEditSheetState extends State<StockEditSheet> {
   late final quantity = TextEditingController(text: _text(widget.stock['quantity']));
   late final cost = TextEditingController(text: _text(widget.stock['cost_price']));
   late final selling = TextEditingController(text: _text(widget.stock['selling_price']));
-  late final unit = TextEditingController(text: '${widget.stock['unit_type'] ?? ''}');
+  late String? unit = widget.stock['unit_type']?.toString();
   bool saving = false;
 
   static String _text(dynamic v) {
@@ -362,7 +358,7 @@ class _StockEditSheetState extends State<StockEditSheet> {
 
   @override
   void dispose() {
-    for (final c in [quantity, cost, selling, unit]) {
+    for (final c in [quantity, cost, selling]) {
       c.dispose();
     }
     super.dispose();
@@ -373,7 +369,7 @@ class _StockEditSheetState extends State<StockEditSheet> {
       context,
       (api) => api.put('/staff/stock/${widget.stock['id']}', data: {
         'quantity': toDouble(quantity.text),
-        'unit_type': unit.text.trim().isEmpty ? null : unit.text.trim(),
+        'unit_type': (unit ?? '').isEmpty ? null : unit,
         'cost_price': cost.text.trim().isEmpty ? null : toDouble(cost.text),
         'selling_price': selling.text.trim().isEmpty ? null : toDouble(selling.text),
       }),
@@ -395,13 +391,9 @@ class _StockEditSheetState extends State<StockEditSheet> {
             Text('${widget.stock['product_name']}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
             Text('${widget.stock['branch_name'] ?? ''}', style: const TextStyle(color: kMuted)),
             const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(child: TextField(controller: quantity, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Quantity'))),
-                const SizedBox(width: 10),
-                Expanded(child: TextField(controller: unit, decoration: const InputDecoration(labelText: 'Unit'))),
-              ],
-            ),
+            TextField(controller: quantity, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Quantity')),
+            const SizedBox(height: 12),
+            UnitPicker(value: unit, onChanged: (v) => setState(() => unit = v)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -502,6 +494,154 @@ class _StockIssueFormScreenState extends State<StockIssueFormScreen> {
           FilledButton.icon(onPressed: saving ? null : save, icon: const Icon(Icons.save), label: Text(saving ? 'Saving...' : 'Record issue')),
         ],
       ),
+    );
+  }
+}
+
+/// Pick the unit stock is counted in from the managed list, or add a new one.
+class UnitPicker extends StatefulWidget {
+  const UnitPicker({super.key, required this.value, required this.onChanged});
+
+  final String? value;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  State<UnitPicker> createState() => _UnitPickerState();
+}
+
+class _UnitPickerState extends State<UnitPicker> {
+  static const _add = '__add_unit__';
+
+  /// Bumped to rebuild the field, e.g. after the add dialog is cancelled.
+  int _resets = 0;
+
+  Future<void> _addUnit() async {
+    final created = await showDialog<String>(context: context, builder: (_) => const _NewUnitDialog());
+    if (!mounted) return;
+    if (created != null) widget.onChanged(created);
+    setState(() => _resets++);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final units = context.watch<StaffLookups>().unitTypes;
+    final current = (widget.value ?? '').trim();
+    final known = units.any((u) => u.value.toLowerCase() == current.toLowerCase());
+    final selected = current.isEmpty
+        ? null
+        : known
+            ? units.firstWhere((u) => u.value.toLowerCase() == current.toLowerCase()).value
+            : current;
+
+    return DropdownButtonFormField<String>(
+      // initialValue is only read once; a new key shows a changed selection.
+      key: ValueKey('unit-$selected-$_resets-${units.length}'),
+      initialValue: selected,
+      isExpanded: true,
+      decoration: const InputDecoration(labelText: 'Unit', prefixIcon: Icon(Icons.straighten)),
+      hint: const Text('Choose unit'),
+      items: [
+        // A unit typed before the list existed stays selectable.
+        if (selected != null && !known) DropdownMenuItem(value: selected, child: Text(selected)),
+        for (final u in units)
+          DropdownMenuItem(
+            value: u.value,
+            child: Row(
+              children: [
+                Expanded(child: Text(u.label, overflow: TextOverflow.ellipsis)),
+                Text(u.category, style: const TextStyle(color: kFaint, fontSize: 12)),
+              ],
+            ),
+          ),
+        const DropdownMenuItem(
+          value: _add,
+          child: Row(children: [Icon(Icons.add, size: 18), SizedBox(width: 6), Text('Add a new unit', style: TextStyle(fontWeight: FontWeight.w700))]),
+        ),
+      ],
+      onChanged: (v) {
+        if (v == _add) {
+          _addUnit();
+        } else {
+          widget.onChanged(v);
+        }
+      },
+    );
+  }
+}
+
+class _NewUnitDialog extends StatefulWidget {
+  const _NewUnitDialog();
+
+  @override
+  State<_NewUnitDialog> createState() => _NewUnitDialogState();
+}
+
+class _NewUnitDialogState extends State<_NewUnitDialog> {
+  final form = GlobalKey<FormState>();
+  final name = TextEditingController();
+  final short = TextEditingController();
+  String category = 'Count';
+  bool saving = false;
+
+  @override
+  void dispose() {
+    name.dispose();
+    short.dispose();
+    super.dispose();
+  }
+
+  Future<void> save() async {
+    if (!form.currentState!.validate()) return;
+    final lookups = context.read<StaffLookups>();
+    final result = await runApi(
+      context,
+      (api) => api.post('/staff/catalog/unit-types', data: {
+        'name': name.text.trim(),
+        'abbreviation': short.text.trim(),
+        'category': category,
+      }),
+      busy: (b) => setState(() => saving = b),
+    );
+    if (result == null || !mounted) return;
+    await lookups.load();
+    if (mounted) Navigator.pop(context, '${((result.data as Map)['data'] as Map)['abbreviation']}');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('New unit'),
+      content: Form(
+        key: form,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: name,
+              autofocus: true,
+              decoration: const InputDecoration(labelText: 'Name', hintText: 'e.g. Crate of 24'),
+              validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: short,
+              decoration: const InputDecoration(labelText: 'Short name', hintText: 'e.g. crate24'),
+              validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: category,
+              decoration: const InputDecoration(labelText: 'Group'),
+              items: [for (final c in const ['Count', 'Weight', 'Volume', 'Length', 'Area', 'Other']) DropdownMenuItem(value: c, child: Text(c))],
+              onChanged: (v) => setState(() => category = v ?? 'Count'),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        FilledButton(onPressed: saving ? null : save, child: Text(saving ? 'Saving...' : 'Add unit')),
+      ],
     );
   }
 }

@@ -8,11 +8,16 @@ import '../../widgets/staff_ui.dart';
 import 'pos_screen.dart';
 import 'tender_editor.dart';
 
-const saleStatuses = {'paid': 'Paid', 'partial': 'Part paid', 'pending': 'Credit'};
+const saleStatuses = {'paid': 'Paid', 'partial': 'Part paid', 'pending': 'Credit', 'outstanding': 'Owing'};
 
 /// Sales list with status filter and a "New sale" button that opens the POS.
 class SalesScreen extends StatefulWidget {
-  const SalesScreen({super.key});
+  const SalesScreen({super.key, this.initialStatus, this.from, this.to});
+
+  /// Starting filters, e.g. from a dashboard card.
+  final String? initialStatus;
+  final String? from;
+  final String? to;
 
   @override
   State<SalesScreen> createState() => _SalesScreenState();
@@ -20,7 +25,9 @@ class SalesScreen extends StatefulWidget {
 
 class _SalesScreenState extends State<SalesScreen> {
   final list = PagedListController();
-  String? status;
+  late String? status = widget.initialStatus;
+  late String? from = widget.from;
+  late String? to = widget.to;
 
   Future<void> newSale() async {
     final saleId = await Navigator.push<int>(context, MaterialPageRoute(builder: (_) => const PosScreen()));
@@ -41,11 +48,28 @@ class _SalesScreenState extends State<SalesScreen> {
       body: PagedList(
         path: '/staff/sales',
         controller: list,
-        query: {'status': status},
+        query: {'status': status, 'from': from, 'to': to},
         searchHint: 'Invoice, customer or product',
         emptyText: 'No sales found.',
         emptyIcon: Icons.point_of_sale,
-        header: FilterChips(options: saleStatuses, selected: status, onSelected: (v) => setState(() => status = v)),
+        header: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FilterChips(options: saleStatuses, selected: status, onSelected: (v) => setState(() => status = v)),
+            if (from != null || to != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: InputChip(
+                  avatar: const Icon(Icons.date_range, size: 16),
+                  label: Text(from == to ? formatDate(from) : '${formatDate(from)} – ${formatDate(to)}'),
+                  onDeleted: () => setState(() {
+                    from = null;
+                    to = null;
+                  }),
+                ),
+              ),
+          ],
+        ),
         itemBuilder: (context, row) => RecordCard(
           title: '${row['invoice_no'] ?? 'Sale #${row['id']}'}',
           subtitle: '${row['product_names'] ?? ''}',

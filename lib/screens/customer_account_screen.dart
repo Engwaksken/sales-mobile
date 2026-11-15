@@ -6,7 +6,7 @@ import 'customer_chat_screen.dart';
 import 'customer_history_screen.dart';
 import 'customer_notifications_screen.dart';
 import 'customer_payments_screen.dart';
-import 'customer_profile_edit_screen.dart';
+import 'profile_screen.dart';
 import 'notification_settings_screen.dart';
 
 class CustomerAccountScreen extends StatelessWidget {
@@ -111,9 +111,9 @@ class CustomerAccountScreen extends StatelessWidget {
             _item(
               context,
               icon: Icons.manage_accounts_outlined,
-              title: 'Update Profile',
-              subtitle: 'Name, phone and delivery address',
-              page: const CustomerProfileEditScreen(),
+              title: 'My Profile',
+              subtitle: 'Photo, name, phone, address and password',
+              page: const ProfileScreen(),
             ),
             _item(
               context,

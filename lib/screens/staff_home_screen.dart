@@ -9,6 +9,7 @@ import '../core/staff_lookups.dart';
 import '../core/user_access.dart';
 import 'customer_notifications_screen.dart';
 import 'notification_settings_screen.dart';
+import 'profile_screen.dart';
 import 'dashboard_screen.dart';
 import 'expenses_screen.dart';
 import 'resource_list_screen.dart';
@@ -47,117 +48,231 @@ class StaffModule {
 }
 
 Widget _viewOnly(String resource, String title, IconData icon) =>
-    ResourceListScreen(resource: resource, title: title, icon: icon, showHeader: false);
+    ResourceListScreen(
+      resource: resource,
+      title: title,
+      icon: icon,
+      showHeader: false,
+    );
 
 /// Mirrors the website sidebar (groups and permission keys).
 final List<StaffModule> staffModules = [
   StaffModule(
-    id: 'sales', label: 'Sales', group: 'Sales', permission: 'manage_sales',
-    icon: Icons.point_of_sale_outlined, selectedIcon: Icons.point_of_sale,
+    id: 'sales',
+    label: 'Sales',
+    group: 'Sales',
+    permission: 'manage_sales',
+    icon: Icons.point_of_sale_outlined,
+    selectedIcon: Icons.point_of_sale,
     builder: (_) => const SalesScreen(),
   ),
   StaffModule(
-    id: 'orders', label: 'Orders', group: 'Sales', permission: 'manage_orders',
-    icon: Icons.local_shipping_outlined, selectedIcon: Icons.local_shipping,
+    id: 'orders',
+    label: 'Orders',
+    group: 'Sales',
+    permission: 'manage_orders',
+    icon: Icons.local_shipping_outlined,
+    selectedIcon: Icons.local_shipping,
     builder: (_) => const OrdersScreen(),
   ),
   StaffModule(
-    id: 'payments', label: 'Payments', group: 'Sales', permission: 'manage_sales',
-    icon: Icons.payments_outlined, selectedIcon: Icons.payments,
+    id: 'payments',
+    label: 'Payments',
+    group: 'Sales',
+    permission: 'manage_sales',
+    icon: Icons.payments_outlined,
+    selectedIcon: Icons.payments,
     builder: (_) => const PaymentsScreen(),
   ),
   StaffModule(
-    id: 'mobile-money', label: 'Mobile Money', group: 'Sales', permission: 'manage_sales', viewOnly: true,
-    icon: Icons.phone_android_outlined, selectedIcon: Icons.phone_android,
-    builder: (_) => _viewOnly('mobile-money', 'Mobile Money', Icons.phone_android),
+    id: 'mobile-money',
+    label: 'Mobile Money',
+    group: 'Sales',
+    permission: 'manage_sales',
+    viewOnly: true,
+    icon: Icons.phone_android_outlined,
+    selectedIcon: Icons.phone_android,
+    builder: (_) =>
+        _viewOnly('mobile-money', 'Mobile Money', Icons.phone_android),
   ),
   StaffModule(
-    id: 'chats', label: 'Chats', group: 'Support', permission: 'manage_chats',
-    icon: Icons.forum_outlined, selectedIcon: Icons.forum,
+    id: 'chats',
+    label: 'Chats',
+    group: 'Support',
+    permission: 'manage_chats',
+    icon: Icons.forum_outlined,
+    selectedIcon: Icons.forum,
     builder: (_) => const ChatsScreen(),
   ),
   StaffModule(
-    id: 'products', label: 'Products', group: 'Catalog', permission: 'manage_products',
-    icon: Icons.category_outlined, selectedIcon: Icons.category,
+    id: 'products',
+    label: 'Products',
+    group: 'Catalog',
+    permission: 'manage_products',
+    icon: Icons.category_outlined,
+    selectedIcon: Icons.category,
     builder: (_) => const ProductsScreen(),
   ),
   StaffModule(
-    id: 'categories', label: 'Categories', group: 'Catalog', permission: 'manage_categories',
-    icon: Icons.sell_outlined, selectedIcon: Icons.sell,
+    id: 'categories',
+    label: 'Categories',
+    group: 'Catalog',
+    permission: 'manage_categories',
+    icon: Icons.sell_outlined,
+    selectedIcon: Icons.sell,
     builder: (_) => CatalogScreen(config: CatalogConfig.categories),
   ),
   StaffModule(
-    id: 'stock', label: 'Stock', group: 'Catalog', permission: 'manage_stock',
-    icon: Icons.inventory_2_outlined, selectedIcon: Icons.inventory_2,
+    id: 'stock',
+    label: 'Stock',
+    group: 'Catalog',
+    permission: 'manage_stock',
+    icon: Icons.inventory_2_outlined,
+    selectedIcon: Icons.inventory_2,
     builder: (_) => const StockScreen(),
   ),
   StaffModule(
-    id: 'suppliers', label: 'Suppliers', group: 'Purchasing', permission: 'manage_suppliers',
-    icon: Icons.local_shipping_outlined, selectedIcon: Icons.local_shipping,
+    id: 'unit-types',
+    label: 'Unit Types',
+    group: 'Catalog',
+    permission: 'manage_stock',
+    icon: Icons.straighten_outlined,
+    selectedIcon: Icons.straighten,
+    builder: (_) => CatalogScreen(config: CatalogConfig.unitTypes),
+  ),
+  StaffModule(
+    id: 'suppliers',
+    label: 'Suppliers',
+    group: 'Purchasing',
+    permission: 'manage_suppliers',
+    icon: Icons.local_shipping_outlined,
+    selectedIcon: Icons.local_shipping,
     builder: (_) => CatalogScreen(config: CatalogConfig.suppliers),
   ),
   StaffModule(
-    id: 'expenses', label: 'Expenses', group: 'Purchasing', permission: 'manage_expenses',
-    icon: Icons.receipt_long_outlined, selectedIcon: Icons.receipt_long,
+    id: 'expenses',
+    label: 'Expenses',
+    group: 'Purchasing',
+    permission: 'manage_expenses',
+    icon: Icons.receipt_long_outlined,
+    selectedIcon: Icons.receipt_long,
     builder: (_) => const ExpensesScreen(),
   ),
   StaffModule(
-    id: 'expense-categories', label: 'Expense Categories', group: 'Purchasing', permission: 'manage_expenses',
-    icon: Icons.folder_outlined, selectedIcon: Icons.folder,
+    id: 'expense-categories',
+    label: 'Expense Categories',
+    group: 'Purchasing',
+    permission: 'manage_expenses',
+    icon: Icons.folder_outlined,
+    selectedIcon: Icons.folder,
     builder: (_) => CatalogScreen(config: CatalogConfig.expenseCategories),
   ),
   StaffModule(
-    id: 'customers', label: 'Customers', group: 'Customers', permission: 'manage_customers',
-    icon: Icons.people_outline, selectedIcon: Icons.people,
+    id: 'customers',
+    label: 'Customers',
+    group: 'Customers',
+    permission: 'manage_customers',
+    icon: Icons.people_outline,
+    selectedIcon: Icons.people,
     builder: (_) => CatalogScreen(config: CatalogConfig.customers),
   ),
   StaffModule(
-    id: 'reports', label: 'Reports', group: 'Reports & Accounting',
-    icon: Icons.insights_outlined, selectedIcon: Icons.insights,
+    id: 'reports',
+    label: 'Reports',
+    group: 'Reports & Accounting',
+    icon: Icons.insights_outlined,
+    selectedIcon: Icons.insights,
     builder: (_) => const ReportsScreen(),
   ),
   StaffModule(
-    id: 'chart-of-accounts', label: 'Chart of Accounts', group: 'Reports & Accounting', permission: 'manage_statements', viewOnly: true,
-    icon: Icons.account_tree_outlined, selectedIcon: Icons.account_tree,
-    builder: (_) => _viewOnly('chart-of-accounts', 'Chart of Accounts', Icons.account_tree),
+    id: 'chart-of-accounts',
+    label: 'Chart of Accounts',
+    group: 'Reports & Accounting',
+    permission: 'manage_statements',
+    viewOnly: true,
+    icon: Icons.account_tree_outlined,
+    selectedIcon: Icons.account_tree,
+    builder: (_) =>
+        _viewOnly('chart-of-accounts', 'Chart of Accounts', Icons.account_tree),
   ),
   StaffModule(
-    id: 'journals', label: 'Journals', group: 'Reports & Accounting', permission: 'manage_statements', viewOnly: true,
-    icon: Icons.menu_book_outlined, selectedIcon: Icons.menu_book,
-    builder: (_) => _viewOnly('accounting-journals', 'Journals', Icons.menu_book),
+    id: 'journals',
+    label: 'Journals',
+    group: 'Reports & Accounting',
+    permission: 'manage_statements',
+    viewOnly: true,
+    icon: Icons.menu_book_outlined,
+    selectedIcon: Icons.menu_book,
+    builder: (_) =>
+        _viewOnly('accounting-journals', 'Journals', Icons.menu_book),
   ),
   StaffModule(
-    id: 'activity', label: 'Activity Log', group: 'Admin', permission: 'view_activity_logs',
-    icon: Icons.fact_check_outlined, selectedIcon: Icons.fact_check,
+    id: 'activity',
+    label: 'Activity Log',
+    group: 'Admin',
+    permission: 'view_activity_logs',
+    icon: Icons.fact_check_outlined,
+    selectedIcon: Icons.fact_check,
     builder: (_) => const ActivityLogScreen(),
   ),
   StaffModule(
-    id: 'efris', label: 'EFRIS Invoices', group: 'Admin', permission: 'manage_settings', viewOnly: true,
-    icon: Icons.verified_outlined, selectedIcon: Icons.verified,
-    builder: (_) => _viewOnly('efris-invoices', 'EFRIS Invoices', Icons.verified),
+    id: 'efris',
+    label: 'EFRIS Invoices',
+    group: 'Admin',
+    permission: 'manage_settings',
+    viewOnly: true,
+    icon: Icons.verified_outlined,
+    selectedIcon: Icons.verified,
+    builder: (_) =>
+        _viewOnly('efris-invoices', 'EFRIS Invoices', Icons.verified),
   ),
   StaffModule(
-    id: 'users', label: 'Users', group: 'Admin', permission: 'manage_users', viewOnly: true,
-    icon: Icons.manage_accounts_outlined, selectedIcon: Icons.manage_accounts,
+    id: 'users',
+    label: 'Users',
+    group: 'Admin',
+    permission: 'manage_users',
+    viewOnly: true,
+    icon: Icons.manage_accounts_outlined,
+    selectedIcon: Icons.manage_accounts,
     builder: (_) => _viewOnly('users', 'Users', Icons.manage_accounts),
   ),
   StaffModule(
-    id: 'branches', label: 'Branches', group: 'Admin', permission: 'manage_branches', viewOnly: true,
-    icon: Icons.store_outlined, selectedIcon: Icons.store,
+    id: 'branches',
+    label: 'Branches',
+    group: 'Admin',
+    permission: 'manage_branches',
+    viewOnly: true,
+    icon: Icons.store_outlined,
+    selectedIcon: Icons.store,
     builder: (_) => _viewOnly('branches', 'Branches', Icons.store),
   ),
   StaffModule(
-    id: 'delivery-zones', label: 'Delivery Zones', group: 'Admin', permission: 'manage_settings', viewOnly: true,
-    icon: Icons.map_outlined, selectedIcon: Icons.map,
+    id: 'delivery-zones',
+    label: 'Delivery Zones',
+    group: 'Admin',
+    permission: 'manage_settings',
+    viewOnly: true,
+    icon: Icons.map_outlined,
+    selectedIcon: Icons.map,
     builder: (_) => _viewOnly('delivery-zones', 'Delivery Zones', Icons.map),
   ),
 ];
 
 /// Bottom-bar candidates in order of everyday use; the first [barSlots] allowed ones are shown.
-const _barPriority = ['sales', 'orders', 'stock', 'expenses', 'products', 'payments', 'customers', 'chats'];
+const _barPriority = [
+  'sales',
+  'orders',
+  'stock',
+  'expenses',
+  'products',
+  'payments',
+  'customers',
+  'chats',
+];
 
-List<StaffModule> allowedModules(UserAccess access) =>
-    staffModules.where((m) => m.permission == null || access.can(m.permission!)).toList();
+List<StaffModule> allowedModules(UserAccess access) => staffModules
+    .where((m) => m.permission == null || access.can(m.permission!))
+    .toList();
 
 class StaffHomeScreen extends StatefulWidget {
   const StaffHomeScreen({super.key});
@@ -191,7 +306,9 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
   }
 
   Future<void> openNotifications() async {
-    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CustomerNotificationsScreen()));
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const CustomerNotificationsScreen()),
+    );
     await loadUnread();
   }
 
@@ -207,7 +324,12 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
     final pages = <Widget>[
       const DashboardScreen(),
       for (final m in inBar) Builder(builder: m.builder),
-      StaffMoreScreen(modules: inMore, access: access, onNotifications: openNotifications, unread: unread),
+      StaffMoreScreen(
+        modules: inMore,
+        access: access,
+        onNotifications: openNotifications,
+        unread: unread,
+      ),
     ];
     final safeIndex = index.clamp(0, pages.length - 1);
 
@@ -221,7 +343,9 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
             const SizedBox(width: 9),
             Flexible(
               child: Text(
-                safeIndex == 0 || safeIndex == pages.length - 1 ? context.brandName : inBar[safeIndex - 1].label,
+                safeIndex == 0 || safeIndex == pages.length - 1
+                    ? context.brandName
+                    : inBar[safeIndex - 1].label,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
@@ -243,6 +367,10 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
             onSelected: (value) async {
               if (value == 'more') {
                 setState(() => index = pages.length - 1);
+              } else if (value == 'profile') {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
               } else if (value == 'logout') {
                 await context.read<AuthStore>().logout();
               }
@@ -253,19 +381,44 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(access.name, style: const TextStyle(fontWeight: FontWeight.w800)),
-                    Text(access.roleLabel, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                    Text(
+                      access.name,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    Text(
+                      access.roleLabel,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
                   ],
                 ),
               ),
               const PopupMenuDivider(),
               const PopupMenuItem(
+                value: 'profile',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.person_outline),
+                  title: Text('My profile'),
+                ),
+              ),
+              const PopupMenuItem(
                 value: 'more',
-                child: ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.apps), title: Text('All modules')),
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.apps),
+                  title: Text('All modules'),
+                ),
               ),
               const PopupMenuItem(
                 value: 'logout',
-                child: ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.logout), title: Text('Logout')),
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.logout),
+                  title: Text('Logout'),
+                ),
               ),
             ],
           ),
@@ -277,9 +430,22 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: (value) => setState(() => index = value),
         destinations: [
-          const NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Dashboard'),
-          for (final m in inBar) NavigationDestination(icon: Icon(m.icon), selectedIcon: Icon(m.selectedIcon), label: m.label),
-          const NavigationDestination(icon: Icon(Icons.apps_outlined), selectedIcon: Icon(Icons.apps), label: 'More'),
+          const NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          for (final m in inBar)
+            NavigationDestination(
+              icon: Icon(m.icon),
+              selectedIcon: Icon(m.selectedIcon),
+              label: m.label,
+            ),
+          const NavigationDestination(
+            icon: Icon(Icons.apps_outlined),
+            selectedIcon: Icon(Icons.apps),
+            label: 'More',
+          ),
         ],
       ),
     );
@@ -288,7 +454,13 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
 
 /// Every other module the user may open, grouped like the website sidebar.
 class StaffMoreScreen extends StatelessWidget {
-  const StaffMoreScreen({super.key, required this.modules, required this.access, this.onNotifications, this.unread = 0});
+  const StaffMoreScreen({
+    super.key,
+    required this.modules,
+    required this.access,
+    this.onNotifications,
+    this.unread = 0,
+  });
 
   final List<StaffModule> modules;
   final UserAccess access;
@@ -306,7 +478,13 @@ class StaffMoreScreen extends StatelessWidget {
                     preferredSize: Size.fromHeight(26),
                     child: Padding(
                       padding: EdgeInsets.only(bottom: 8),
-                      child: Text('View only · make changes on the website', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                      child: Text(
+                        'View only · make changes on the website',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
                     ),
                   )
                 : null,
@@ -329,42 +507,92 @@ class StaffMoreScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: [
         Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: scheme.primaryContainer,
-                  child: Text(
-                    access.name.isNotEmpty ? access.name[0].toUpperCase() : '?',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: scheme.primary),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(access.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
-                      if (access.email.isNotEmpty) Text(access.email, style: const TextStyle(color: Color(0xFF64748B))),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                        decoration: BoxDecoration(color: scheme.primaryContainer, borderRadius: BorderRadius.circular(999)),
-                        child: Text(access.roleLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: scheme.primary)),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const ProfileScreen())),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 26,
+                    backgroundColor: scheme.primaryContainer,
+                    foregroundImage: access.user?['photo_url'] is String
+                        ? NetworkImage(access.user!['photo_url'] as String)
+                        : null,
+                    onForegroundImageError: access.user?['photo_url'] is String
+                        ? (_, _) {}
+                        : null,
+                    child: Text(
+                      access.name.isNotEmpty
+                          ? access.name[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: scheme.primary,
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          access.name,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        if (access.email.isNotEmpty)
+                          Text(
+                            access.email,
+                            style: const TextStyle(color: Color(0xFF64748B)),
+                          ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: scheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            access.roleLabel,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: scheme.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: Color(0xFF94A3B8)),
+                ],
+              ),
             ),
           ),
         ),
         for (final entry in groups.entries) ...[
           Padding(
             padding: const EdgeInsets.only(left: 4, top: 18, bottom: 8),
-            child: Text(entry.key.toUpperCase(), style: const TextStyle(fontSize: 12, letterSpacing: 0.6, fontWeight: FontWeight.w800, color: Color(0xFF64748B))),
+            child: Text(
+              entry.key.toUpperCase(),
+              style: const TextStyle(
+                fontSize: 12,
+                letterSpacing: 0.6,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF64748B),
+              ),
+            ),
           ),
           Card(
             child: Column(
@@ -386,7 +614,11 @@ class StaffMoreScreen extends StatelessWidget {
           child: Column(
             children: [
               ListTile(
-                leading: Badge(isLabelVisible: unread > 0, label: Text('$unread'), child: const Icon(Icons.notifications_outlined)),
+                leading: Badge(
+                  isLabelVisible: unread > 0,
+                  label: Text('$unread'),
+                  child: const Icon(Icons.notifications_outlined),
+                ),
                 title: const Text('Notifications'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: onNotifications,
@@ -396,11 +628,21 @@ class StaffMoreScreen extends StatelessWidget {
                 title: const Text('Notification settings'),
                 subtitle: const Text('Choose what you are alerted about'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationSettingsScreen())),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationSettingsScreen(),
+                  ),
+                ),
               ),
               ListTile(
                 leading: const Icon(Icons.logout, color: Color(0xFFDC2626)),
-                title: const Text('Logout', style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w700)),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(
+                    color: Color(0xFFDC2626),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 onTap: () => context.read<AuthStore>().logout(),
               ),
             ],

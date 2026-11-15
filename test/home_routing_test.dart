@@ -95,7 +95,7 @@ void main() {
     });
 
     test('a store keeper only gets stock and reports', () {
-      expect(ids({'role': 'manager', 'permissions': ['manage_stock']}), ['stock', 'reports']);
+      expect(ids({'role': 'manager', 'permissions': ['manage_stock']}), ['stock', 'unit-types', 'reports']);
     });
 
     test('only owners with view_activity_logs see the activity log', () {

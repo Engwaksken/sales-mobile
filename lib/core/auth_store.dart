@@ -272,6 +272,12 @@ class AuthStore extends ChangeNotifier {
     }
   }
 
+  /// Merges changed profile fields (name, photo_url...) so every screen updates at once.
+  void updateUser(Map<String, dynamic> changes) {
+    user = {...?user, ...changes};
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     try {
       await api.post(AppConfig.logoutPath);
