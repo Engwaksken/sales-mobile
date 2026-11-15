@@ -62,6 +62,9 @@ class StaffLookups extends ChangeNotifier {
   List<Option> categories = const [];
   List<Option> suppliers = const [];
   List<Option> expenseCategories = const [];
+
+  /// Category names for the expense form (active ones plus any already used).
+  List<String> expenseCategoryNames = const [];
   List<UnitOption> unitTypes = const [];
   List<String> paymentMethods = const ['Cash', 'Mobile Money', 'Card', 'Bank Transfer', 'Cheque'];
   List<KeyLabel> orderStages = const [];
@@ -77,6 +80,9 @@ class StaffLookups extends ChangeNotifier {
       categories = Option.listFrom(data['categories']);
       suppliers = Option.listFrom(data['suppliers']);
       expenseCategories = Option.listFrom(data['expense_categories']);
+      expenseCategoryNames = (data['expense_category_names'] is List)
+          ? (data['expense_category_names'] as List).map((n) => '$n').toList()
+          : expenseCategories.map((c) => c.name).toList();
       unitTypes = UnitOption.listFrom(data['unit_types']);
       if (data['payment_methods'] is List) {
         paymentMethods = (data['payment_methods'] as List).map((m) => '$m').toList();
