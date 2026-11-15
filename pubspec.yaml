@@ -1,0 +1,36 @@
+name: nsales_native
+description: Native Android and iOS client for NSales.
+publish_to: "none"
+version: 1.0.1+2
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  dio: ^5.11.0
+  flutter_secure_storage: ^9.2.4
+  provider: ^6.1.5+1
+  image_picker: ^1.2.3
+  google_mlkit_text_recognition: ^0.16.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icons/logo.png
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/logo.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icons/logo.png"
+  remove_alpha_ios: true

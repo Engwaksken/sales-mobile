@@ -1,0 +1,84 @@
+NSALES NATIVE MOBILE - JUMIA-STYLE CUSTOMER EXPERIENCE
+======================================================
+
+The native Android/iOS application remains CUSTOMER ONLY.
+
+NEW CUSTOMER EXPERIENCE
+-----------------------
+
+HOME
+- Customer greeting
+- Order shortcut counters:
+  All
+  Pending
+  Shipping
+  Delivered
+- Payments count
+- Unread notifications count
+- Recent orders
+
+SHOP
+- Search field
+- Product grid
+- Product image
+- Price
+- Available stock
+
+MY ORDERS
+- All
+- Pending
+- Shipping
+- Delivered tabs
+- Order detail
+- Order tracking timeline
+- Products in order
+- Amount paid
+- Balance
+- Payment receipts
+- Delivery address
+
+ACCOUNT
+- My Orders
+- Payments & Receipts
+- Notifications
+- History
+- Chat Support
+- Update Profile
+- Sign Out
+
+NOTIFICATIONS
+- Bell badge shows unread only
+- Opening a notification marks it read
+- Read All
+- Badge refreshes after returning
+
+PROFILE
+- Update customer name
+- Update phone
+- Update delivery address
+
+CHATBOT / SUPPORT
+- Native chat screen
+- Customer messages are stored against their email
+- Existing staff Chat Support can continue the conversation
+- Designed for AI-first support with human support continuation
+
+IMPORTANT
+---------
+
+Install the companion Laravel package:
+
+nsales_laravel_customer_mobile_jumia_api_update.zip
+
+The new screens depend on its /api/mobile/customer/* endpoints.
+
+AFTER COPYING MOBILE FILES
+--------------------------
+
+flutter clean
+flutter pub get
+flutter run
+
+Release:
+
+flutter build apk --release

@@ -1,0 +1,6 @@
+Add these keys inside the main <dict> in ios/Runner/Info.plist:
+
+<key>NSCameraUsageDescription</key>
+<string>NSales uses the camera to scan expense receipts.</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>NSales lets you select receipt images from your photo library.</string>
