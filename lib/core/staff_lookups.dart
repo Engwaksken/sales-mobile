@@ -13,7 +13,9 @@ class Option {
     if (raw is! List) return const [];
     return raw
         .whereType<Map>()
-        .map((m) => Option(int.tryParse('${m['id']}') ?? 0, '${m['name'] ?? ''}'))
+        .map(
+          (m) => Option(int.tryParse('${m['id']}') ?? 0, '${m['name'] ?? ''}'),
+        )
         .toList();
   }
 }
@@ -27,7 +29,10 @@ class KeyLabel {
 
   static List<KeyLabel> listFrom(dynamic raw) {
     if (raw is! List) return const [];
-    return raw.whereType<Map>().map((m) => KeyLabel('${m['key']}', '${m['label']}')).toList();
+    return raw
+        .whereType<Map>()
+        .map((m) => KeyLabel('${m['key']}', '${m['label']}'))
+        .toList();
   }
 }
 
@@ -43,7 +48,13 @@ class UnitOption {
     if (raw is! List) return const [];
     return raw
         .whereType<Map>()
-        .map((m) => UnitOption('${m['value']}', '${m['label']}', '${m['category'] ?? 'Other'}'))
+        .map(
+          (m) => UnitOption(
+            '${m['value']}',
+            '${m['label']}',
+            '${m['category'] ?? 'Other'}',
+          ),
+        )
         .toList();
   }
 }
@@ -61,12 +72,19 @@ class StaffLookups extends ChangeNotifier {
   List<Option> branches = const [];
   List<Option> categories = const [];
   List<Option> suppliers = const [];
+  List<Option> products = const [];
   List<Option> expenseCategories = const [];
 
   /// Category names for the expense form (active ones plus any already used).
   List<String> expenseCategoryNames = const [];
   List<UnitOption> unitTypes = const [];
-  List<String> paymentMethods = const ['Cash', 'Mobile Money', 'Card', 'Bank Transfer', 'Cheque'];
+  List<String> paymentMethods = const [
+    'Cash',
+    'Mobile Money',
+    'Card',
+    'Bank Transfer',
+    'Cheque',
+  ];
   List<KeyLabel> orderStages = const [];
   List<KeyLabel> stockIssueTypes = const [];
 
@@ -79,13 +97,16 @@ class StaffLookups extends ChangeNotifier {
       branches = Option.listFrom(data['branches']);
       categories = Option.listFrom(data['categories']);
       suppliers = Option.listFrom(data['suppliers']);
+      products = Option.listFrom(data['products']);
       expenseCategories = Option.listFrom(data['expense_categories']);
       expenseCategoryNames = (data['expense_category_names'] is List)
           ? (data['expense_category_names'] as List).map((n) => '$n').toList()
           : expenseCategories.map((c) => c.name).toList();
       unitTypes = UnitOption.listFrom(data['unit_types']);
       if (data['payment_methods'] is List) {
-        paymentMethods = (data['payment_methods'] as List).map((m) => '$m').toList();
+        paymentMethods = (data['payment_methods'] as List)
+            .map((m) => '$m')
+            .toList();
       }
       orderStages = KeyLabel.listFrom(data['order_stages']);
       stockIssueTypes = KeyLabel.listFrom(data['stock_issue_types']);
@@ -104,5 +125,6 @@ class StaffLookups extends ChangeNotifier {
       branches.where((b) => b.id == id).map((b) => b.name).firstOrNull ?? '';
 
   String stageLabel(String? key) =>
-      orderStages.where((s) => s.key == key).map((s) => s.label).firstOrNull ?? (key ?? '');
+      orderStages.where((s) => s.key == key).map((s) => s.label).firstOrNull ??
+      (key ?? '');
 }

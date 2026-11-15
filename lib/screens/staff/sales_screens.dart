@@ -445,13 +445,97 @@ class _RecordPaymentSheetState extends State<RecordPaymentSheet> {
 }
 
 /// Every receipt issued against sales.
-class PaymentsScreen extends StatelessWidget {
+class PaymentsScreen extends StatefulWidget {
   const PaymentsScreen({super.key});
 
   @override
+  State<PaymentsScreen> createState() => _PaymentsScreenState();
+}
+
+class _PaymentsScreenState extends State<PaymentsScreen> {
+  final list = PagedListController();
+  int? branchId;
+  String? paymentMethod;
+  int? productId;
+
+  @override
   Widget build(BuildContext context) {
+    final lookups = context.watch<StaffLookups>();
     return PagedList(
       path: '/staff/payments',
+      controller: list,
+      query: {
+        if (lookups.isAdmin && branchId != null) 'branch_id': branchId,
+        if (paymentMethod != null) 'payment_method': paymentMethod,
+        if (productId != null) 'product_id': productId,
+      },
+      header: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          if (lookups.isAdmin)
+            SizedBox(
+              width: 160,
+              child: DropdownButtonFormField<int?>(
+                key: ValueKey('payment-branch-$branchId'),
+                initialValue: branchId,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Branch'),
+                items: [
+                  const DropdownMenuItem<int?>(
+                    value: null,
+                    child: Text('All branches'),
+                  ),
+                  for (final option in lookups.branches)
+                    DropdownMenuItem<int?>(
+                      value: option.id,
+                      child: Text(option.name, overflow: TextOverflow.ellipsis),
+                    ),
+                ],
+                onChanged: (value) => setState(() => branchId = value),
+              ),
+            ),
+          SizedBox(
+            width: 160,
+            child: DropdownButtonFormField<String?>(
+              key: ValueKey('payment-method-$paymentMethod'),
+              initialValue: paymentMethod,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Payment method'),
+              items: [
+                const DropdownMenuItem<String?>(
+                  value: null,
+                  child: Text('All methods'),
+                ),
+                for (final method in lookups.paymentMethods)
+                  DropdownMenuItem<String?>(value: method, child: Text(method)),
+              ],
+              onChanged: (value) => setState(() => paymentMethod = value),
+            ),
+          ),
+          SizedBox(
+            width: 180,
+            child: DropdownButtonFormField<int?>(
+              key: ValueKey('payment-product-$productId'),
+              initialValue: productId,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Product'),
+              items: [
+                const DropdownMenuItem<int?>(
+                  value: null,
+                  child: Text('All products'),
+                ),
+                for (final option in lookups.products)
+                  DropdownMenuItem<int?>(
+                    value: option.id,
+                    child: Text(option.name, overflow: TextOverflow.ellipsis),
+                  ),
+              ],
+              onChanged: (value) => setState(() => productId = value),
+            ),
+          ),
+        ],
+      ),
       searchHint: 'Receipt, invoice or customer',
       emptyText: 'No payments found.',
       emptyIcon: Icons.payments_outlined,
