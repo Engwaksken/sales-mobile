@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
 import '../core/customer_api.dart';
+import '../core/config.dart';
+import '../widgets/common.dart';
 import 'customer_order_detail_screen.dart';
 
 class CustomerDashboardScreen extends StatefulWidget {
@@ -78,12 +80,18 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
       );
     }
 
-    final profile =
-        Map<String, dynamic>.from(data['profile'] ?? const {});
-    final counts =
-        Map<String, dynamic>.from(data['counts'] ?? const {});
-    final recentOrders =
-        List<dynamic>.from(data['recent_orders'] ?? const []);
+    final profile = Map<String, dynamic>.from(data['profile'] ?? const {});
+    final counts = Map<String, dynamic>.from(data['counts'] ?? const {});
+    final recentOrders = List<dynamic>.from(data['recent_orders'] ?? const []);
+    final rawPhoto = profile['photo_url']?.toString() ?? '';
+    final parsedPhoto = Uri.tryParse(rawPhoto);
+    final photoUrl = rawPhoto.isEmpty
+        ? null
+        : (parsedPhoto?.hasScheme == true
+              ? rawPhoto
+              : Uri.parse(AppConfig.apiOrigin)
+                    .resolve(rawPhoto.startsWith('/') ? rawPhoto : '/$rawPhoto')
+                    .toString());
 
     return RefreshIndicator(
       onRefresh: load,
@@ -101,10 +109,12 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: Colors.white12,
+                  foregroundImage: photoUrl == null
+                      ? null
+                      : NetworkImage(photoUrl),
+                  onForegroundImageError: photoUrl == null ? null : (_, _) {},
                   child: Text(
-                    '${profile['name'] ?? 'C'}'
-                        .substring(0, 1)
-                        .toUpperCase(),
+                    '${profile['name'] ?? 'C'}'.substring(0, 1).toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -119,10 +129,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
                     children: [
                       const Text(
                         'Welcome back',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
                       ),
                       Text(
                         '${profile['name'] ?? 'Customer'}',
@@ -149,60 +156,47 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
 
           const Text(
             'My Orders',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w900,
-            ),
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 10),
 
           GridView.count(
-            crossAxisCount: 4,
+            crossAxisCount: 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 10,
+            mainAxisSpacing: 4,
             crossAxisSpacing: 8,
+            childAspectRatio: 1.65,
             children: [
-              _Shortcut(
+              StatCard(
                 icon: Icons.receipt_long_outlined,
                 label: 'All',
                 value: '${counts['all_orders'] ?? 0}',
               ),
-              _Shortcut(
+              StatCard(
                 icon: Icons.hourglass_top,
                 label: 'Pending',
                 value: '${counts['pending_orders'] ?? 0}',
               ),
-              _Shortcut(
+              StatCard(
                 icon: Icons.local_shipping_outlined,
                 label: 'Shipping',
                 value: '${counts['shipping_orders'] ?? 0}',
               ),
-              _Shortcut(
+              StatCard(
                 icon: Icons.check_circle_outline,
                 label: 'Delivered',
                 value: '${counts['delivered_orders'] ?? 0}',
               ),
-            ],
-          ),
-
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Expanded(
-                child: _InfoTile(
-                  icon: Icons.payments_outlined,
-                  label: 'Payments',
-                  value: '${counts['payments'] ?? 0}',
-                ),
+              StatCard(
+                icon: Icons.payments_outlined,
+                label: 'Payments',
+                value: '${counts['payments'] ?? 0}',
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _InfoTile(
-                  icon: Icons.notifications_outlined,
-                  label: 'Unread',
-                  value: '${counts['unread_notifications'] ?? 0}',
-                ),
+              StatCard(
+                icon: Icons.notifications_outlined,
+                label: 'Unread notifications',
+                value: '${counts['unread_notifications'] ?? 0}',
               ),
             ],
           ),
@@ -213,18 +207,12 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
               const Expanded(
                 child: Text(
                   'Recent Orders',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
-                  ),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
                 ),
               ),
               Text(
                 '${counts['all_orders'] ?? 0} total',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF64748B),
-                ),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
               ),
             ],
           ),
@@ -242,8 +230,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
             )
           else
             ...recentOrders.map((raw) {
-              final order =
-                  Map<String, dynamic>.from(raw as Map);
+              final order = Map<String, dynamic>.from(raw as Map);
               return _OrderCard(order: order);
             }),
         ],
@@ -268,28 +255,17 @@ class _Shortcut extends StatelessWidget {
     return Card(
       elevation: 0,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 6,
-          vertical: 12,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 24),
             const SizedBox(height: 5),
-            Text(
-              value,
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-              ),
-            ),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
             Text(
               label,
               maxLines: 1,
-              style: const TextStyle(
-                fontSize: 10,
-                color: Color(0xFF64748B),
-              ),
+              style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
             ),
           ],
         ),
@@ -315,10 +291,7 @@ class _InfoTile extends StatelessWidget {
       elevation: 0,
       child: ListTile(
         leading: CircleAvatar(child: Icon(icon)),
-        title: Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.w900),
-        ),
+        title: Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
         subtitle: Text(label),
       ),
     );
@@ -335,16 +308,16 @@ class _OrderCard extends StatelessWidget {
     return Card(
       elevation: 0,
       child: ListTile(
-        leading: const CircleAvatar(
-          child: Icon(Icons.shopping_bag_outlined),
-        ),
+        leading: const CircleAvatar(child: Icon(Icons.shopping_bag_outlined)),
         title: Text(
           '${order['order_number'] ?? order['order_id'] ?? 'Order'}',
           style: const TextStyle(fontWeight: FontWeight.w800),
         ),
         subtitle: Text(
-          '${order['status_label'] ?? order['status'] ?? 'Pending'}'
-              .replaceAll('_', ' '),
+          '${order['status_label'] ?? order['status'] ?? 'Pending'}'.replaceAll(
+            '_',
+            ' ',
+          ),
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () {

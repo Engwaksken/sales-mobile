@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
+import '../core/config.dart';
 
 class CustomerProductsScreen extends StatefulWidget {
   const CustomerProductsScreen({super.key});
 
   @override
-  State<CustomerProductsScreen> createState() =>
-      _CustomerProductsScreenState();
+  State<CustomerProductsScreen> createState() => _CustomerProductsScreenState();
 }
 
-class _CustomerProductsScreenState
-    extends State<CustomerProductsScreen> {
+class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
   bool loading = true;
   List<dynamic> rows = [];
   String query = '';
@@ -24,8 +23,7 @@ class _CustomerProductsScreenState
   }
 
   Future<void> load() async {
-    final response =
-        await context.read<ApiClient>().get('/customer/products');
+    final response = await context.read<ApiClient>().get('/customer/products');
 
     if (!mounted) return;
 
@@ -69,17 +67,27 @@ class _CustomerProductsScreenState
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: filtered.length,
-            gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               childAspectRatio: .72,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
             ),
             itemBuilder: (_, index) {
-              final row =
-                  Map<String, dynamic>.from(filtered[index] as Map);
-              final imageUrl = '${row['image_url'] ?? ''}';
+              final row = Map<String, dynamic>.from(filtered[index] as Map);
+              final rawImageUrl = '${row['image_url'] ?? row['image'] ?? ''}'
+                  .trim();
+              final imageUrl = rawImageUrl.isEmpty
+                  ? ''
+                  : (Uri.tryParse(rawImageUrl)?.hasScheme == true
+                        ? rawImageUrl
+                        : Uri.parse(AppConfig.apiOrigin)
+                              .resolve(
+                                rawImageUrl.startsWith('/')
+                                    ? rawImageUrl
+                                    : '/$rawImageUrl',
+                              )
+                              .toString());
 
               return Card(
                 elevation: 0,
@@ -100,8 +108,7 @@ class _CustomerProductsScreenState
                             : Image.network(
                                 imageUrl,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) =>
-                                    const Icon(
+                                errorBuilder: (_, _, _) => const Icon(
                                   Icons.broken_image_outlined,
                                   size: 48,
                                 ),
@@ -117,16 +124,12 @@ class _CustomerProductsScreenState
                             '${row['name'] ?? 'Product'}',
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
                           const SizedBox(height: 5),
                           Text(
                             'UGX ${row['selling_price'] ?? 0}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.w900),
                           ),
                           const SizedBox(height: 2),
                           Text(

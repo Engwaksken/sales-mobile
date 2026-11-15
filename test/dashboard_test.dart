@@ -50,6 +50,11 @@ void main() {
 
     expect(find.text('UGX 1.25M'), findsOneWidget);
     expect(find.text('Sales vs expenses'), findsOneWidget);
+    await tester.tap(find.text('Sales vs expenses').first);
+    await tester.tap(find.text('Daily sales').first);
+    await tester.tap(find.text('How customers paid').first);
+    await tester.tap(find.text('Top products').first);
+    await tester.pumpAndSettle();
     expect(find.byType(BarChart), findsOneWidget);
     expect(find.byType(LineChart), findsOneWidget);
     expect(find.byType(PieChart), findsOneWidget);
