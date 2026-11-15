@@ -8,6 +8,7 @@ import '../core/customer_api.dart';
 import '../core/staff_lookups.dart';
 import '../core/user_access.dart';
 import 'customer_notifications_screen.dart';
+import 'notification_settings_screen.dart';
 import 'dashboard_screen.dart';
 import 'expenses_screen.dart';
 import 'resource_list_screen.dart';
@@ -389,6 +390,13 @@ class StaffMoreScreen extends StatelessWidget {
                 title: const Text('Notifications'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: onNotifications,
+              ),
+              ListTile(
+                leading: const Icon(Icons.tune),
+                title: const Text('Notification settings'),
+                subtitle: const Text('Choose what you are alerted about'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationSettingsScreen())),
               ),
               ListTile(
                 leading: const Icon(Icons.logout, color: Color(0xFFDC2626)),

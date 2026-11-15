@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
 import '../core/customer_api.dart';
+import 'notification_settings_screen.dart';
 
 class CustomerNotificationsScreen extends StatefulWidget {
   const CustomerNotificationsScreen({super.key});
@@ -79,6 +80,15 @@ class _CustomerNotificationsScreenState
                 ? readAll
                 : null,
             child: const Text('Read all'),
+          ),
+          IconButton(
+            tooltip: 'Notification settings',
+            icon: const Icon(Icons.tune),
+            onPressed: () async {
+              await Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()));
+              // Muted types disappear from the list.
+              load();
+            },
           ),
         ],
       ),

@@ -7,6 +7,7 @@ import 'customer_history_screen.dart';
 import 'customer_notifications_screen.dart';
 import 'customer_payments_screen.dart';
 import 'customer_profile_edit_screen.dart';
+import 'notification_settings_screen.dart';
 
 class CustomerAccountScreen extends StatelessWidget {
   const CustomerAccountScreen({
@@ -113,6 +114,13 @@ class CustomerAccountScreen extends StatelessWidget {
               title: 'Update Profile',
               subtitle: 'Name, phone and delivery address',
               page: const CustomerProfileEditScreen(),
+            ),
+            _item(
+              context,
+              icon: Icons.notifications_active_outlined,
+              title: 'Notification Settings',
+              subtitle: 'Choose what you are notified about',
+              page: const NotificationSettingsScreen(),
             ),
           ],
         ),

@@ -27,10 +27,13 @@ flutter:
   assets:
     - assets/icons/logo.png
 
+# The launcher icon is the favicon from the website Settings
+# (tool/sync_branding.ps1 copies it to assets/icons/app_icon.png).
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icons/logo.png"
+  image_path: "assets/icons/app_icon.png"
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icons/logo.png"
+  adaptive_icon_foreground: "assets/icons/app_icon.png"
+  adaptive_icon_foreground_inset: 18
   remove_alpha_ios: true

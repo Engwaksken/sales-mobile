@@ -8,7 +8,7 @@
         android:required="false" />
 
     <application
-        android:label="NSales"
+        android:label="Unihub Sales System"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <!-- Impeller renders a black screen on PowerVR GE8300 phones (e.g. TECNO KG5j). -->

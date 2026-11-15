@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
 import 'api_client.dart';
+import 'brand_defaults.dart';
 import 'config.dart';
 
 /// The system name, logo, favicon and theme colour an admin sets under
@@ -23,10 +24,11 @@ class BrandingStore extends ChangeNotifier {
   /// Keep cached images small enough for secure storage.
   static const _maxImageBytes = 600 * 1024;
 
-  String siteName = AppConfig.appName;
+  // Built-in defaults come from the website Settings at build time (tool/sync_branding.ps1).
+  String siteName = kBrandName;
   String? logoUrl;
   String? faviconUrl;
-  Color primary = const Color(0xFF0F766E);
+  Color primary = kBrandPrimary;
   Uint8List? logoBytes;
   Uint8List? faviconBytes;
 
@@ -76,7 +78,7 @@ class BrandingStore extends ChangeNotifier {
 
   void _apply(Map<String, dynamic> data) {
     final name = '${data['site_name'] ?? ''}'.trim();
-    siteName = name.isEmpty ? AppConfig.appName : name;
+    siteName = name.isEmpty ? kBrandName : name;
     logoUrl = _url(data['logo_url']);
     faviconUrl = _url(data['favicon_url']);
     primary = _color(data['theme_primary']) ?? primary;
