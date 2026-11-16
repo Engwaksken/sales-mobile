@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
+import '../widgets/filter_bar.dart';
 
 class ResourceListScreen extends StatefulWidget {
   const ResourceListScreen({
@@ -25,6 +28,7 @@ class ResourceListScreen extends StatefulWidget {
 
 class _ResourceListScreenState extends State<ResourceListScreen> {
   final search = TextEditingController();
+  Timer? debounce;
   bool loading = true;
   String? error;
   List<dynamic> rows = [];
@@ -37,8 +41,14 @@ class _ResourceListScreenState extends State<ResourceListScreen> {
 
   @override
   void dispose() {
+    debounce?.cancel();
     search.dispose();
     super.dispose();
+  }
+
+  void searchNow() {
+    debounce?.cancel();
+    load();
   }
 
   Future<void> load() async {
@@ -73,32 +83,44 @@ class _ResourceListScreenState extends State<ResourceListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: load,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          if (widget.showHeader) ...[
-            Row(
+    return Column(
+      children: [
+        if (widget.showHeader)
+          Material(
+            color: Theme.of(context).colorScheme.surfaceContainerLowest,
+            child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
               children: [
                 Icon(widget.icon, size: 28),
                 const SizedBox(width: 10),
                 Expanded(child: Text(widget.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900))),
               ],
             ),
-            const SizedBox(height: 14),
-          ],
-          TextField(
-            controller: search,
-            onSubmitted: (_) => load(),
-            decoration: InputDecoration(
-              hintText: 'Search ${widget.title.toLowerCase()}...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: IconButton(onPressed: load, icon: const Icon(Icons.arrow_forward)),
-              border: const OutlineInputBorder(),
             ),
           ),
-          const SizedBox(height: 14),
+        FilterBar(
+          search: search,
+          searchHint: 'Search ${widget.title.toLowerCase()}',
+          onSearchChanged: (_) {
+            debounce?.cancel();
+            debounce = Timer(const Duration(milliseconds: 450), load);
+          },
+          onSearchSubmitted: (_) => searchNow(),
+          onSearchCleared: searchNow,
+        ),
+        Expanded(child: _list()),
+      ],
+    );
+  }
+
+  Widget _list() {
+    return RefreshIndicator(
+      onRefresh: load,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
           if (loading)
             const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()))
           else if (error != null)
@@ -111,6 +133,16 @@ class _ResourceListScreenState extends State<ResourceListScreen> {
                   FilledButton.icon(onPressed: load, icon: const Icon(Icons.refresh), label: const Text('Retry')),
                 ],
               ),
+            )
+          else if (rows.isEmpty && search.text.trim().isNotEmpty)
+            FilteredEmptyState(
+              message: 'No ${widget.title.toLowerCase()} match your search',
+              hint: 'Check the spelling or try other words.',
+              clearLabel: 'Clear search',
+              onClear: () {
+                search.clear();
+                searchNow();
+              },
             )
           else if (rows.isEmpty)
             const Padding(

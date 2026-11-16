@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/api_client.dart';
 import '../../core/format.dart';
 import '../../core/staff_lookups.dart';
+import '../../widgets/filter_bar.dart';
 import '../../widgets/staff_ui.dart';
 import 'sales_screens.dart';
 
@@ -29,7 +30,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stages = {for (final s in context.watch<StaffLookups>().orderStages) s.key: s.label};
+    final stages = context.watch<StaffLookups>().orderStages;
 
     return PagedList(
       path: '/staff/orders',
@@ -39,7 +40,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
       emptyText: 'No orders found.',
       emptyIcon: Icons.local_shipping_outlined,
       bottomPadding: 24,
-      header: stages.isEmpty ? null : FilterChips(options: stages, selected: status, onSelected: (v) => setState(() => status = v)),
+      filters: [
+        ChoiceFilter(
+          id: 'status',
+          label: 'Stage',
+          options: [for (final s in stages) FilterOption(s.key, s.label)],
+          searchable: false,
+        ),
+      ],
+      filterValues: {'status': status},
+      onFiltersChanged: (v) => setState(() => status = v['status'] as String?),
+      quickFilters: const ['status'],
       itemBuilder: (context, row) => RecordCard(
         title: '${row['order_number'] ?? 'Order #${row['id']}'}',
         subtitle: [row['customer_name'], row['phone']].where((s) => s != null && '$s'.isNotEmpty).join(' · '),

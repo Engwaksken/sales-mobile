@@ -5,6 +5,7 @@ import '../../core/api_client.dart';
 import '../../core/format.dart';
 import '../../core/document_sharing.dart';
 import '../../core/staff_lookups.dart';
+import '../../widgets/filter_bar.dart';
 import '../../widgets/staff_ui.dart';
 import 'pos_screen.dart';
 import 'tender_editor.dart';
@@ -31,9 +32,31 @@ class SalesScreen extends StatefulWidget {
 
 class _SalesScreenState extends State<SalesScreen> {
   final list = PagedListController();
-  late String? status = widget.initialStatus;
-  late String? from = widget.from;
-  late String? to = widget.to;
+
+  static final filters = [
+    ChoiceFilter(
+      id: 'status',
+      label: 'Status',
+      options: [for (final e in saleStatuses.entries) FilterOption(e.key, e.value)],
+    ),
+    const DateRangeFilter(id: 'date', label: 'Sale date'),
+  ];
+
+  /// The range a dashboard card opened this list with.
+  late final DateTimeRange? startRange = _startingRange(widget.from, widget.to);
+
+  late Map<String, Object?> values = {
+    'status': widget.initialStatus,
+    'date': startRange,
+  };
+
+  /// A dashboard card's from/to, for display; a missing end shows as today.
+  static DateTimeRange? _startingRange(String? from, String? to) {
+    final start = DateTime.tryParse(from ?? '') ?? DateTime.tryParse(to ?? '');
+    if (start == null) return null;
+    final end = DateTime.tryParse(to ?? '') ?? DateTime.now();
+    return dateOnlyRange(DateTimeRange(start: start, end: end.isBefore(start) ? start : end));
+  }
 
   Future<void> newSale() async {
     final saleId = await Navigator.push<int>(
@@ -50,6 +73,7 @@ class _SalesScreenState extends State<SalesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final range = values['date'] as DateTimeRange?;
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'new-sale',
@@ -60,36 +84,19 @@ class _SalesScreenState extends State<SalesScreen> {
       body: PagedList(
         path: '/staff/sales',
         controller: list,
-        query: {'status': status, 'from': from, 'to': to},
+        query: {
+          'status': values['status'],
+          // Until the dates are changed, send the card's own from/to unchanged.
+          'from': range == null ? null : (range == startRange ? widget.from : isoDate(range.start)),
+          'to': range == null ? null : (range == startRange ? widget.to : isoDate(range.end)),
+        },
+        filters: filters,
+        filterValues: values,
+        onFiltersChanged: (v) => setState(() => values = v),
+        quickFilters: const ['status'],
         searchHint: 'Invoice, customer or product',
         emptyText: 'No sales found.',
         emptyIcon: Icons.point_of_sale,
-        header: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FilterChips(
-              options: saleStatuses,
-              selected: status,
-              onSelected: (v) => setState(() => status = v),
-            ),
-            if (from != null || to != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: InputChip(
-                  avatar: const Icon(Icons.date_range, size: 16),
-                  label: Text(
-                    from == to
-                        ? formatDate(from)
-                        : '${formatDate(from)} – ${formatDate(to)}',
-                  ),
-                  onDeleted: () => setState(() {
-                    from = null;
-                    to = null;
-                  }),
-                ),
-              ),
-          ],
-        ),
         itemBuilder: (context, row) => RecordCard(
           title: '${row['invoice_no'] ?? 'Sale #${row['id']}'}',
           subtitle: '${row['product_names'] ?? ''}',
@@ -475,88 +482,56 @@ class PaymentsScreen extends StatefulWidget {
 
 class _PaymentsScreenState extends State<PaymentsScreen> {
   final list = PagedListController();
-  int? branchId;
-  String? paymentMethod;
-  int? productId;
+  Map<String, Object?> values = {};
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<StaffLookups>().ensureLoaded();
+  }
 
   @override
   Widget build(BuildContext context) {
     final lookups = context.watch<StaffLookups>();
+    final branchId = values['branch'] as String?;
+    final paymentMethod = values['method'] as String?;
+    final productId = values['product'] as String?;
     return PagedList(
       path: '/staff/payments',
       controller: list,
       query: {
-        if (lookups.isAdmin && branchId != null) 'branch_id': branchId,
-        if (paymentMethod != null) 'payment_method': paymentMethod,
-        if (productId != null) 'product_id': productId,
+        if (lookups.isAdmin && branchId != null) 'branch_id': int.parse(branchId),
+        'payment_method': ?paymentMethod,
+        if (productId != null) 'product_id': int.parse(productId),
       },
-      header: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          if (lookups.isAdmin)
-            SizedBox(
-              width: 160,
-              child: DropdownButtonFormField<int?>(
-                key: ValueKey('payment-branch-$branchId'),
-                initialValue: branchId,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Branch'),
-                items: [
-                  const DropdownMenuItem<int?>(
-                    value: null,
-                    child: Text('All branches'),
-                  ),
-                  for (final option in lookups.branches)
-                    DropdownMenuItem<int?>(
-                      value: option.id,
-                      child: Text(option.name, overflow: TextOverflow.ellipsis),
-                    ),
-                ],
-                onChanged: (value) => setState(() => branchId = value),
-              ),
-            ),
-          SizedBox(
-            width: 160,
-            child: DropdownButtonFormField<String?>(
-              key: ValueKey('payment-method-$paymentMethod'),
-              initialValue: paymentMethod,
-              isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Payment method'),
-              items: [
-                const DropdownMenuItem<String?>(
-                  value: null,
-                  child: Text('All methods'),
-                ),
-                for (final method in lookups.paymentMethods)
-                  DropdownMenuItem<String?>(value: method, child: Text(method)),
-              ],
-              onChanged: (value) => setState(() => paymentMethod = value),
-            ),
+      filters: [
+        ChoiceFilter(
+          id: 'method',
+          label: 'Payment method',
+          options: [for (final m in lookups.paymentMethods) FilterOption(m, m)],
+          searchable: false,
+        ),
+        if (lookups.isAdmin)
+          ChoiceFilter(
+            id: 'branch',
+            label: 'Branch',
+            icon: Icons.store_outlined,
+            allLabel: 'All branches',
+            options: [for (final b in lookups.branches) FilterOption('${b.id}', b.name)],
+            searchable: true,
           ),
-          SizedBox(
-            width: 180,
-            child: DropdownButtonFormField<int?>(
-              key: ValueKey('payment-product-$productId'),
-              initialValue: productId,
-              isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Product'),
-              items: [
-                const DropdownMenuItem<int?>(
-                  value: null,
-                  child: Text('All products'),
-                ),
-                for (final option in lookups.products)
-                  DropdownMenuItem<int?>(
-                    value: option.id,
-                    child: Text(option.name, overflow: TextOverflow.ellipsis),
-                  ),
-              ],
-              onChanged: (value) => setState(() => productId = value),
-            ),
-          ),
-        ],
-      ),
+        ChoiceFilter(
+          id: 'product',
+          label: 'Product',
+          icon: Icons.inventory_2_outlined,
+          allLabel: 'All products',
+          options: [for (final p in lookups.products) FilterOption('${p.id}', p.name)],
+          searchable: true,
+        ),
+      ],
+      filterValues: values,
+      onFiltersChanged: (v) => setState(() => values = v),
+      quickFilters: const ['method'],
       searchHint: 'Receipt, invoice or customer',
       emptyText: 'No payments found.',
       emptyIcon: Icons.payments_outlined,

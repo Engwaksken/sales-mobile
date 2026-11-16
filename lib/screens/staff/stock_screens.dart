@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/format.dart';
 import '../../core/staff_lookups.dart';
+import '../../widgets/filter_bar.dart';
 import '../../widgets/staff_ui.dart';
 
 /// Stock levels and stock issues (damages, gratis, staff consumption).
@@ -79,14 +80,17 @@ class _StockScreenState extends State<StockScreen> with SingleTickerProviderStat
                   searchHint: 'Product, SKU or barcode',
                   emptyText: lowOnly ? 'Nothing is running low.' : 'No stock recorded yet.',
                   emptyIcon: Icons.inventory_2_outlined,
-                  header: Align(
-                    alignment: Alignment.centerLeft,
-                    child: FilterChip(
-                      label: const Text('Low stock (5 or fewer)'),
-                      selected: lowOnly,
-                      onSelected: (v) => setState(() => lowOnly = v),
+                  filters: const [
+                    ToggleFilter(
+                      id: 'low',
+                      label: 'Low stock',
+                      icon: Icons.trending_down,
+                      description: 'Only products with 5 or fewer left',
                     ),
-                  ),
+                  ],
+                  filterValues: {'low': lowOnly},
+                  onFiltersChanged: (v) => setState(() => lowOnly = v['low'] == true),
+                  quickFilters: const ['low'],
                   itemBuilder: (context, row) {
                     final qty = toDouble(row['quantity']);
                     final price = row['selling_price'];

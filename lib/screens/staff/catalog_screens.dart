@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/format.dart';
 import '../../core/staff_lookups.dart';
+import '../../widgets/filter_bar.dart';
 import '../../widgets/staff_ui.dart';
 
 enum FieldKind { text, email, phone, multiline, status, toggle, choice }
@@ -370,13 +371,22 @@ class _ProductsScreenState extends State<ProductsScreen> {
         searchHint: 'Name, SKU or barcode',
         emptyText: 'No products found.',
         emptyIcon: Icons.category_outlined,
-        header: categories.isEmpty
-            ? null
-            : FilterChips(
-                options: {for (final c in categories) '${c.id}': c.name},
-                selected: categoryId?.toString(),
-                onSelected: (v) => setState(() => categoryId = v == null ? null : int.parse(v)),
-              ),
+        filters: [
+          ChoiceFilter(
+            id: 'category',
+            label: 'Category',
+            icon: Icons.sell_outlined,
+            allLabel: 'All categories',
+            options: [for (final c in categories) FilterOption('${c.id}', c.name)],
+            searchable: true,
+          ),
+        ],
+        filterValues: {'category': categoryId?.toString()},
+        onFiltersChanged: (v) {
+          final id = v['category'] as String?;
+          setState(() => categoryId = id == null ? null : int.parse(id));
+        },
+        quickFilters: const ['category'],
         itemBuilder: (context, row) => RecordCard(
           leading: _Thumb(url: row['image_url']?.toString()),
           title: '${row['name']}',

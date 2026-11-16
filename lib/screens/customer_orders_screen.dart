@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
 import '../core/customer_api.dart';
+import '../widgets/filter_bar.dart';
 import 'customer_order_detail_screen.dart';
 
 class CustomerOrdersScreen extends StatefulWidget {
@@ -12,29 +13,32 @@ class CustomerOrdersScreen extends StatefulWidget {
   State<CustomerOrdersScreen> createState() => _CustomerOrdersScreenState();
 }
 
-class _CustomerOrdersScreenState extends State<CustomerOrdersScreen>
-    with SingleTickerProviderStateMixin {
+class _CustomerOrdersScreenState extends State<CustomerOrdersScreen> {
   bool loading = true;
   String? error;
   List<dynamic> rows = [];
 
   late final CustomerApi customerApi;
-  late final TabController tabs;
 
-  final filters = const ['all', 'pending', 'shipping', 'delivered'];
+  /// Matched against each order's status group on the phone.
+  static const filters = [
+    ChoiceFilter(
+      id: 'status',
+      label: 'Status',
+      options: [
+        FilterOption('pending', 'Pending'),
+        FilterOption('shipping', 'Shipping'),
+        FilterOption('delivered', 'Delivered'),
+      ],
+    ),
+  ];
+  Map<String, Object?> values = {};
 
   @override
   void initState() {
     super.initState();
     customerApi = CustomerApi(context.read<ApiClient>());
-    tabs = TabController(length: filters.length, vsync: this);
     load();
-  }
-
-  @override
-  void dispose() {
-    tabs.dispose();
-    super.dispose();
   }
 
   Future<void> load() async {
@@ -55,8 +59,8 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen>
     }
   }
 
-  List<dynamic> filtered(String filter) {
-    if (filter == 'all') return rows;
+  List<dynamic> filtered(String? filter) {
+    if (filter == null) return rows;
 
     return rows.where((raw) {
       final row = Map<String, dynamic>.from(raw as Map);
@@ -76,46 +80,43 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen>
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-          child: Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'My Orders',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
+        Material(
+          color: Theme.of(context).colorScheme.surfaceContainerLowest,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'My Orders',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
                   ),
                 ),
-              ),
-              IconButton(
-                onPressed: load,
-                icon: const Icon(Icons.refresh),
-              ),
-            ],
+                IconButton(onPressed: load, icon: const Icon(Icons.refresh)),
+              ],
+            ),
           ),
         ),
-        TabBar(
-          controller: tabs,
-          isScrollable: true,
-          tabs: const [
-            Tab(text: 'All'),
-            Tab(text: 'Pending'),
-            Tab(text: 'Shipping'),
-            Tab(text: 'Delivered'),
-          ],
+        FilterBar(
+          filters: filters,
+          values: values,
+          onChanged: (v) => setState(() => values = v),
+          quickFilters: const ['status'],
         ),
         Expanded(
-          child: TabBarView(
-            controller: tabs,
-            children: filters.map((filter) {
-              final items = filtered(filter);
+          child: Builder(
+            builder: (context) {
+              final items = filtered(values['status'] as String?);
 
               if (items.isEmpty) {
-                return const Center(
-                  child: Text('No orders in this section.'),
-                );
+                return values['status'] == null
+                    ? const Center(child: Text('No orders yet.'))
+                    : SingleChildScrollView(
+                        child: FilteredEmptyState(
+                          message: 'No orders match these filters',
+                          onClear: () => setState(() => values = {}),
+                        ),
+                      );
               }
 
               return RefreshIndicator(
@@ -124,8 +125,9 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen>
                   padding: const EdgeInsets.all(12),
                   itemCount: items.length,
                   itemBuilder: (_, index) {
-                    final order =
-                        Map<String, dynamic>.from(items[index] as Map);
+                    final order = Map<String, dynamic>.from(
+                      items[index] as Map,
+                    );
                     return Card(
                       elevation: 0,
                       child: ListTile(
@@ -135,9 +137,7 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen>
                         ),
                         title: Text(
                           '${order['order_number'] ?? order['order_id'] ?? 'Order'}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w900,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.w900),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,7 +169,7 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen>
                   },
                 ),
               );
-            }).toList(),
+            },
           ),
         ),
       ],

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/api_client.dart';
 import '../../core/format.dart';
+import '../../widgets/filter_bar.dart';
 import '../../widgets/staff_ui.dart';
 
 /// Customer support conversations.
@@ -29,7 +30,16 @@ class _ChatsScreenState extends State<ChatsScreen> {
       emptyText: 'No conversations.',
       emptyIcon: Icons.forum_outlined,
       bottomPadding: 24,
-      header: FilterChips(options: const {'open': 'Open', 'closed': 'Closed'}, selected: status, onSelected: (v) => setState(() => status = v)),
+      filters: const [
+        ChoiceFilter(
+          id: 'status',
+          label: 'Status',
+          options: [FilterOption('open', 'Open'), FilterOption('closed', 'Closed')],
+        ),
+      ],
+      filterValues: {'status': status},
+      onFiltersChanged: (v) => setState(() => status = v['status'] as String?),
+      quickFilters: const ['status'],
       itemBuilder: (context, row) {
         final unread = int.tryParse('${row['unread_count']}') ?? 0;
         return RecordCard(

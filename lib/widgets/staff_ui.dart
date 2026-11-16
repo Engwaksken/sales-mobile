@@ -5,9 +5,19 @@ import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
 import '../core/format.dart';
+import 'filter_bar.dart';
 
 const kMuted = Color(0xFF64748B);
 const kFaint = Color(0xFF94A3B8);
+
+/// Body text on white.
+const kInk = Color(0xFF0F172A);
+
+/// Thin borders and dividers.
+const kHairline = Color(0xFFE2E8F0);
+
+/// Soft grey behind search fields and pickers.
+const kFieldFill = Color(0xFFF1F5F9);
 
 /// Lets a parent screen reload a [PagedList] (after creating or editing a record).
 class PagedListController {
@@ -18,6 +28,9 @@ class PagedListController {
 
 /// A searchable, pull-to-refresh, load-more list backed by a paginated API
 /// endpoint that returns `{data: [...], meta: {current_page, last_page}}`.
+///
+/// Search and [filters] sit in a [FilterBar] pinned above the list. The
+/// screen keeps [filterValues] and maps them into [query] itself.
 class PagedList extends StatefulWidget {
   const PagedList({
     super.key,
@@ -31,6 +44,10 @@ class PagedList extends StatefulWidget {
     this.emptyIcon = Icons.inbox_outlined,
     this.searchable = true,
     this.bottomPadding = 88,
+    this.filters = const [],
+    this.filterValues = const {},
+    this.onFiltersChanged,
+    this.quickFilters = const [],
   });
 
   final String path;
@@ -45,6 +62,13 @@ class PagedList extends StatefulWidget {
 
   /// Room left under the last row for a floating action button.
   final double bottomPadding;
+
+  final List<FilterField> filters;
+  final Map<String, Object?> filterValues;
+  final ValueChanged<Map<String, Object?>>? onFiltersChanged;
+
+  /// Ids of [filters] also offered as one-tap chips in the bar.
+  final List<String> quickFilters;
 
   @override
   State<PagedList> createState() => _PagedListState();
@@ -148,9 +172,24 @@ class _PagedListState extends State<PagedList> {
     debounce = Timer(const Duration(milliseconds: 450), load);
   }
 
+  bool get _filtered =>
+      search.text.trim().isNotEmpty || activeFilterCount(widget.filters, widget.filterValues) > 0;
+
+  void clearFilters() {
+    debounce?.cancel();
+    final hadFilters = activeFilterCount(widget.filters, widget.filterValues) > 0;
+    search.clear();
+    if (hadFilters && widget.onFiltersChanged != null) {
+      // The new query reloads the list (see didUpdateWidget).
+      widget.onFiltersChanged!(resetFilterValues(widget.filters, widget.filterValues));
+    } else {
+      load();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
+    final list = RefreshIndicator(
       onRefresh: load,
       child: ListView(
         controller: scroll,
@@ -158,35 +197,14 @@ class _PagedListState extends State<PagedList> {
         padding: EdgeInsets.fromLTRB(16, 12, 16, widget.bottomPadding),
         children: [
           if (widget.header != null) ...[widget.header!, const SizedBox(height: 10)],
-          if (widget.searchable) ...[
-            TextField(
-              controller: search,
-              onChanged: onSearchChanged,
-              onSubmitted: (_) => load(),
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                hintText: widget.searchHint,
-                prefixIcon: const Icon(Icons.search),
-                isDense: true,
-                suffixIcon: search.text.isEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          search.clear();
-                          load();
-                        },
-                      ),
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
           if (loading)
             const Padding(padding: EdgeInsets.all(40), child: Center(child: CircularProgressIndicator()))
           else if (error != null)
             ErrorState(message: error!, onRetry: load)
           else if (rows.isEmpty)
-            EmptyState(text: widget.emptyText, icon: widget.emptyIcon)
+            _filtered
+                ? FilteredEmptyState(onClear: clearFilters)
+                : EmptyState(text: widget.emptyText, icon: widget.emptyIcon)
           else ...[
             for (final row in rows)
               Padding(padding: const EdgeInsets.only(bottom: 8), child: widget.itemBuilder(context, row)),
@@ -195,6 +213,30 @@ class _PagedListState extends State<PagedList> {
           ],
         ],
       ),
+    );
+
+    if (!widget.searchable && widget.filters.isEmpty) return list;
+    return Column(
+      children: [
+        FilterBar(
+          filters: widget.filters,
+          values: widget.filterValues,
+          onChanged: widget.onFiltersChanged,
+          quickFilters: widget.quickFilters,
+          search: widget.searchable ? search : null,
+          searchHint: widget.searchHint,
+          onSearchChanged: onSearchChanged,
+          onSearchSubmitted: (_) {
+            debounce?.cancel();
+            load();
+          },
+          onSearchCleared: () {
+            debounce?.cancel();
+            load();
+          },
+        ),
+        Expanded(child: list),
+      ],
     );
   }
 }
@@ -434,40 +476,6 @@ class InfoRow extends StatelessWidget {
               style: TextStyle(fontWeight: bold ? FontWeight.w900 : FontWeight.w600, color: const Color(0xFF0F172A)),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Horizontal filter chips; [selected] null means "All".
-class FilterChips extends StatelessWidget {
-  const FilterChips({super.key, required this.options, required this.selected, required this.onSelected});
-
-  final Map<String, String> options;
-  final String? selected;
-  final ValueChanged<String?> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 40,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(label: const Text('All'), selected: selected == null, onSelected: (_) => onSelected(null)),
-          ),
-          for (final entry in options.entries)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ChoiceChip(
-                label: Text(entry.value),
-                selected: selected == entry.key,
-                onSelected: (_) => onSelected(entry.key),
-              ),
-            ),
         ],
       ),
     );

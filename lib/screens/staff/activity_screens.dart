@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/api_client.dart';
 import '../../core/format.dart';
+import '../../widgets/filter_bar.dart';
 import '../../widgets/staff_ui.dart';
 
 const _red = Color(0xFFB91C1C);
@@ -41,9 +42,6 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
   List<Map<String, dynamic>> _list(String key) =>
       ((summary[key] as List?) ?? const []).map((m) => Map<String, dynamic>.from(m as Map)).toList();
 
-  String userName(int? id) =>
-      _list('users').where((u) => u['id'] == id).map((u) => '${u['name']}').firstOrNull ?? 'User #$id';
-
   @override
   Widget build(BuildContext context) {
     final flaggedCount = int.tryParse('${summary['flagged_this_week'] ?? 0}') ?? 0;
@@ -56,9 +54,43 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
       controller: list,
       query: {'flagged': flaggedOnly ? 1 : null, 'module': module, 'user_id': userId},
       searchHint: 'Invoice, product, person...',
-      emptyText: flaggedOnly ? 'Nothing flagged for these filters.' : 'No activity for these filters.',
+      emptyText: 'No activity recorded yet.',
       emptyIcon: Icons.fact_check_outlined,
       bottomPadding: 24,
+      filters: [
+        const ToggleFilter(
+          id: 'flagged',
+          label: 'Flagged only',
+          icon: Icons.flag_outlined,
+          description: 'Deleted or edited sales, changed payments and hand-edited stock',
+        ),
+        ChoiceFilter(
+          id: 'user',
+          label: 'Person',
+          icon: Icons.person_outline,
+          allLabel: 'Everyone',
+          options: [
+            for (final u in users) FilterOption('${u['id']}', '${u['name']} (${titleCase('${u['role']}')})'),
+          ],
+          searchable: true,
+        ),
+        ChoiceFilter(
+          id: 'module',
+          label: 'Area',
+          icon: Icons.category_outlined,
+          allLabel: 'All areas',
+          options: [for (final e in modules.entries) FilterOption(e.key, e.value)],
+          searchable: true,
+        ),
+      ],
+      filterValues: {'flagged': flaggedOnly, 'user': userId?.toString(), 'module': module},
+      onFiltersChanged: (v) => setState(() {
+        flaggedOnly = v['flagged'] == true;
+        final user = v['user'] as String?;
+        userId = user == null ? null : int.tryParse(user);
+        module = v['module'] as String?;
+      }),
+      quickFilters: const ['flagged'],
       header: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -111,77 +143,9 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              FilterChip(
-                avatar: Icon(Icons.flag, size: 16, color: flaggedOnly ? _red : kMuted),
-                label: const Text('Flagged only'),
-                selected: flaggedOnly,
-                onSelected: (v) => setState(() => flaggedOnly = v),
-              ),
-              _PickerChip(
-                icon: Icons.person_outline,
-                label: userId == null ? 'Everyone' : userName(userId),
-                active: userId != null,
-                options: {for (final u in users) '${u['id']}': '${u['name']} (${titleCase('${u['role']}')})'},
-                onSelected: (v) => setState(() => userId = v == null ? null : int.tryParse(v)),
-              ),
-              _PickerChip(
-                icon: Icons.category_outlined,
-                label: module == null ? 'All areas' : (modules[module] ?? module!),
-                active: module != null,
-                options: modules,
-                onSelected: (v) => setState(() => module = v),
-              ),
-            ],
-          ),
         ],
       ),
       itemBuilder: (context, row) => _LogCard(row: row),
-    );
-  }
-}
-
-/// A chip that opens a list to pick one value (or clear it).
-class _PickerChip extends StatelessWidget {
-  const _PickerChip({required this.icon, required this.label, required this.active, required this.options, required this.onSelected});
-
-  final IconData icon;
-  final String label;
-  final bool active;
-  final Map<String, String> options;
-  final ValueChanged<String?> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return InputChip(
-      avatar: Icon(icon, size: 16),
-      label: Text(label, overflow: TextOverflow.ellipsis),
-      selected: active,
-      onDeleted: active ? () => onSelected(null) : null,
-      onPressed: options.isEmpty
-          ? null
-          : () async {
-              final picked = await showModalBottomSheet<String>(
-                context: context,
-                showDragHandle: true,
-                isScrollControlled: true,
-                builder: (sheet) => SizedBox(
-                  height: MediaQuery.of(sheet).size.height * 0.6,
-                  child: ListView(
-                    children: [
-                      for (final e in options.entries)
-                        ListTile(title: Text(e.value), onTap: () => Navigator.pop(sheet, e.key)),
-                    ],
-                  ),
-                ),
-              );
-              if (picked != null) onSelected(picked);
-            },
     );
   }
 }
