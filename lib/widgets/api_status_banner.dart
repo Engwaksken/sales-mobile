@@ -55,9 +55,8 @@ class _ApiStatusBannerState extends State<ApiStatusBanner> {
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'The NSales mobile API is not fully available on the server. '
-              'Login, signup or OTP may fail until the Laravel mobile API '
-              'routes are installed and route cache is cleared.',
+              "We can't reach the server right now. Check your internet "
+              'connection. Signing in may not work until it is back.',
               style: TextStyle(
                 color: Color(0xFF9A3412),
                 fontSize: 12,

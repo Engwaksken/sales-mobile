@@ -117,65 +117,84 @@ class ApiClient {
     }
   }
 
+  /// A short, plain-language message for any request error, safe to show to users.
   String messageFromError(Object error) {
-    if (error is DioException) {
-      final response = error.response;
-      final data = response?.data;
+    if (error is! DioException) return _generic;
 
-      if (response?.statusCode == 403) {
-        final message = data is Map ? '${data['message'] ?? ''}' : '';
-        return message.isNotEmpty && message != 'This action is unauthorized.'
-            ? message
-            : 'You do not have permission to do this.';
-      }
-
-      if (response?.statusCode == 404 && !isMissingRouteResponse(response!)) {
-        final message = data is Map ? '${data['message'] ?? ''}' : '';
-        return message.isNotEmpty ? message : 'That record was not found.';
-      }
-
-      if (response?.statusCode == 404) {
-        final requestPath = error.requestOptions.path;
-
-        return 'The NSales mobile API endpoint "$requestPath" is not enabled '
-            'on the server yet. Update the Laravel mobile API routes, clear '
-            'Laravel route cache, then try again.';
-      }
-
-      if (response?.statusCode == 419) {
-        return 'The request was rejected by the web CSRF layer. The native '
-            'app must use the /api/mobile endpoints, not the website form routes.';
-      }
-
-      if (data is Map && data['message'] != null) {
-        return data['message'].toString();
-      }
-
-      if (data is Map && data['errors'] is Map) {
-        final errors = data['errors'] as Map;
-
-        if (errors.isNotEmpty) {
-          final value = errors.values.first;
-
-          if (value is List && value.isNotEmpty) {
-            return value.first.toString();
-          }
-
-          return value.toString();
-        }
-      }
-
-      if (error.type == DioExceptionType.connectionTimeout ||
-          error.type == DioExceptionType.receiveTimeout) {
-        return 'The NSales server took too long to respond.';
-      }
-
-      if (error.type == DioExceptionType.connectionError) {
-        return 'Unable to connect to NSales. Check your internet connection.';
-      }
+    final response = error.response;
+    if (response == null) {
+      return switch (error.type) {
+        DioExceptionType.connectionTimeout ||
+        DioExceptionType.sendTimeout ||
+        DioExceptionType.receiveTimeout =>
+          'The server is taking too long to respond. Check your connection and try again.',
+        DioExceptionType.cancel => 'The request was cancelled.',
+        DioExceptionType.badCertificate =>
+          "We couldn't make a secure connection. Check your network and try again.",
+        _ => 'No internet connection. Check your Wi-Fi or mobile data and try again.',
+      };
     }
 
-    return 'Something went wrong. Please try again.';
+    final status = response.statusCode ?? 0;
+    final data = response.data;
+    final serverMessage = data is Map ? '${data['message'] ?? ''}'.trim() : '';
+    final fieldError = _firstFieldError(data);
+
+    if (status >= 500) {
+      return status == 503
+          ? 'The system is under maintenance. Please try again in a few minutes.'
+          : 'Something went wrong on our side. Please try again in a moment.';
+    }
+
+    switch (status) {
+      case 401:
+        return _usable(serverMessage, const ['Unauthenticated.'])
+            ?? 'Your session has ended. Please sign in again.';
+      case 403:
+        return _usable(serverMessage, const ['This action is unauthorized.', 'Forbidden'])
+            ?? 'You do not have permission to do this.';
+      case 404:
+        if (isMissingRouteResponse(response)) {
+          return "This feature isn't available yet. Please update the app or try again later.";
+        }
+        return _usable(serverMessage, const []) ?? 'That record was not found. It may have been deleted.';
+      case 413:
+        return 'That file is too large. Choose a smaller file or photo and try again.';
+      case 419:
+        return 'Your session expired. Please try again.';
+      case 422:
+        return fieldError ?? _usable(serverMessage, const []) ?? 'Please check the details you entered and try again.';
+      case 429:
+        return 'Too many attempts. Please wait a minute and try again.';
+    }
+
+    return _usable(serverMessage, const []) ?? fieldError ?? _generic;
+  }
+
+  static const _generic = 'Something went wrong. Please try again.';
+
+  /// The server's own message, unless it is one of Laravel's generic defaults.
+  String? _usable(String message, List<String> generic) {
+    if (message.isEmpty || generic.contains(message)) return null;
+    // Laravel's "route not found" text and similar technical notes are not for users.
+    final lower = message.toLowerCase();
+    if (lower.contains('sqlstate') ||
+        lower.contains('exception') ||
+        lower.contains('route [') ||
+        lower.contains('no query results') ||
+        lower.contains(r'app\models')) {
+      return null;
+    }
+    return message;
+  }
+
+  String? _firstFieldError(dynamic data) {
+    if (data is! Map || data['errors'] is! Map) return null;
+    final errors = data['errors'] as Map;
+    if (errors.isEmpty) return null;
+    final value = errors.values.first;
+    if (value is List) return value.isEmpty ? null : value.first.toString();
+    return value.toString();
   }
 
   String? errorCode(Object error) {
