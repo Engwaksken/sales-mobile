@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/auth_store.dart';
+import '../widgets/auth_ui.dart';
 import '../widgets/common.dart';
 
+/// Step 3 of 3 of password recovery: choose the new password.
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({
     super.key,
@@ -19,29 +21,33 @@ class ResetPasswordScreen extends StatefulWidget {
 }
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+  final _formKey = GlobalKey<FormState>();
   final password = TextEditingController();
   final confirm = TextEditingController();
+  final _confirmFocus = FocusNode();
 
-  bool obscure = true;
-  bool obscureConfirm = true;
+  bool _busy = false;
+  bool _attempted = false;
+  String? _error;
 
   @override
   void dispose() {
     password.dispose();
     confirm.dispose();
+    _confirmFocus.dispose();
     super.dispose();
   }
 
   Future<void> submit() async {
-    if (password.text.isEmpty || confirm.text.isEmpty) {
-      showFlash(context, 'Enter and confirm your new password.', error: true);
-      return;
-    }
+    if (_busy) return;
+    setState(() {
+      _attempted = true;
+      _error = null;
+    });
+    if (!_formKey.currentState!.validate()) return;
 
-    if (password.text != confirm.text) {
-      showFlash(context, 'The passwords do not match.', error: true);
-      return;
-    }
+    FocusScope.of(context).unfocus();
+    setState(() => _busy = true);
 
     final error = await context.read<AuthStore>().resetPassword(
           email: widget.email,
@@ -51,9 +57,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         );
 
     if (!mounted) return;
+    setState(() => _busy = false);
 
     if (error != null) {
-      showFlash(context, error, error: true);
+      setState(() => _error = error);
       return;
     }
 
@@ -64,68 +71,68 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthStore>();
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('New Password')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          const Icon(
-            Icons.lock_reset,
-            size: 64,
-            color: Color(0xFF0F766E),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Create a new password',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 24),
-          TextField(
-            controller: password,
-            obscureText: obscure,
-            decoration: InputDecoration(
-              labelText: 'New password',
-              helperText: 'At least 8 characters with upper/lowercase and a number.',
-              prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: IconButton(
-                onPressed: () => setState(() => obscure = !obscure),
-                icon: Icon(obscure ? Icons.visibility : Icons.visibility_off),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: confirm,
-            obscureText: obscureConfirm,
-            decoration: InputDecoration(
-              labelText: 'Confirm new password',
-              prefixIcon: const Icon(Icons.lock_reset),
-              suffixIcon: IconButton(
-                onPressed: () {
-                  setState(() => obscureConfirm = !obscureConfirm);
-                },
-                icon: Icon(
-                  obscureConfirm ? Icons.visibility : Icons.visibility_off,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 18),
-          FilledButton.icon(
-            onPressed: auth.loading ? null : submit,
-            icon: const Icon(Icons.save),
-            label: Text(
-              auth.loading ? 'Updating...' : 'Change password',
-            ),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-            ),
-          ),
-        ],
+    return AuthScaffold(
+      step: 'Step 3 of 3',
+      title: 'Set a new password',
+      helper: 'Choose a strong password for ${widget.email}.',
+      subtitle: 'Secure account recovery',
+      footer: AuthFooterLink(
+        prompt: 'Changed your mind?',
+        action: 'Back to sign in',
+        onPressed: () =>
+            Navigator.of(context).popUntil((route) => route.isFirst),
       ),
+      children: [
+        if (_error != null)
+          AuthBanner.error(
+            _error!,
+            onDismiss: () => setState(() => _error = null),
+          ),
+        Form(
+          key: _formKey,
+          autovalidateMode: _attempted
+              ? AutovalidateMode.onUserInteraction
+              : AutovalidateMode.disabled,
+          child: AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AuthTextField(
+                  controller: password,
+                  label: 'New password',
+                  icon: Icons.lock_outline,
+                  isPassword: true,
+                  autofocus: true,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.newPassword],
+                  nextFocus: _confirmFocus,
+                  validator: AuthValidators.newPassword,
+                ),
+                PasswordStrengthMeter(controller: password),
+                const SizedBox(height: 16),
+                AuthTextField(
+                  controller: confirm,
+                  focusNode: _confirmFocus,
+                  label: 'Confirm new password',
+                  icon: Icons.lock_outline,
+                  isPassword: true,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.newPassword],
+                  validator: AuthValidators.confirmPassword(password),
+                  onSubmitted: (_) => submit(),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        AuthPrimaryButton(
+          label: 'Update password',
+          busyLabel: 'Updating...',
+          busy: _busy,
+          onPressed: submit,
+        ),
+      ],
     );
   }
 }

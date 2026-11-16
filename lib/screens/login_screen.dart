@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../core/branding.dart';
 import '../core/auth_store.dart';
-import '../widgets/auth_brand.dart';
-import '../widgets/api_status_banner.dart';
-import '../widgets/common.dart';
+import '../widgets/auth_ui.dart';
 import 'forgot_password_screen.dart';
 import 'register_screen.dart';
 import 'verify_registration_screen.dart';
@@ -18,28 +15,34 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   final email = TextEditingController();
   final password = TextEditingController();
+  final _passwordFocus = FocusNode();
 
-  bool obscure = true;
   bool rememberMe = true;
+  bool _busy = false;
+  bool _attempted = false;
+  String? _error;
 
   @override
   void dispose() {
     email.dispose();
     password.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
   Future<void> submit() async {
-    if (email.text.trim().isEmpty || password.text.isEmpty) {
-      showFlash(
-        context,
-        'Enter your email and password.',
-        error: true,
-      );
-      return;
-    }
+    if (_busy) return;
+    setState(() {
+      _attempted = true;
+      _error = null;
+    });
+    if (!_formKey.currentState!.validate()) return;
+
+    FocusScope.of(context).unfocus();
+    setState(() => _busy = true);
 
     final result = await context.read<AuthStore>().login(
           email.text,
@@ -47,9 +50,9 @@ class _LoginScreenState extends State<LoginScreen> {
           rememberMe: rememberMe,
         );
 
-    if (!mounted) {
-      return;
-    }
+    // On success the app swaps this screen for the home screen.
+    if (!mounted) return;
+    setState(() => _busy = false);
 
     if (result.requiresVerification) {
       await Navigator.push(
@@ -65,136 +68,99 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (result.error != null) {
-      showFlash(context, result.error!, error: true);
+      setState(() => _error = result.error);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthStore>();
-
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const AuthBrand(),
-                  const SizedBox(height: 16),
-                  const ApiStatusBanner(),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Welcome to ${context.brandName}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 7),
-                  const Text(
-                    'Sign in to manage sales, orders, expenses, stock and payments.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Color(0xFF64748B)),
-                  ),
-                  const SizedBox(height: 28),
-                  TextField(
-                    controller: email,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    autofillHints: const [AutofillHints.email],
-                    decoration: const InputDecoration(
-                      labelText: 'Email address',
-                      hintText: 'name@example.com',
-                      prefixIcon: Icon(Icons.email_outlined),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: password,
-                    obscureText: obscure,
-                    autofillHints: const [AutofillHints.password],
-                    onSubmitted: (_) => submit(),
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      hintText: 'Enter your password',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        onPressed: () => setState(() => obscure = !obscure),
-                        icon: Icon(
-                          obscure ? Icons.visibility : Icons.visibility_off,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: rememberMe,
-                        onChanged: (value) {
-                          setState(() => rememberMe = value ?? false);
-                        },
-                      ),
-                      const Text(
-                        'Remember me',
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const ForgotPasswordScreen(),
-                          ),
-                        ),
-                        child: const Text('Forgot password?'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  FilledButton.icon(
-                    onPressed: auth.loading ? null : submit,
-                    icon: auth.loading
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.login),
-                    label: Text(
-                      auth.loading ? 'Signing in...' : 'Sign in',
-                    ),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('No account yet?'),
-                      TextButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const RegisterScreen(),
-                          ),
-                        ),
-                        child: const Text('Create account'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+    return AuthScaffold(
+      title: 'Sign in to your account',
+      helper: 'Welcome back. Enter your details to continue.',
+      showApiStatus: true,
+      footer: AuthFooterLink(
+        prompt: "Don't have an account?",
+        action: 'Create an account',
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const RegisterScreen()),
+        ),
+      ),
+      children: [
+        if (_error != null)
+          AuthBanner.error(
+            _error!,
+            onDismiss: () => setState(() => _error = null),
+          ),
+        Form(
+          key: _formKey,
+          autovalidateMode: _attempted
+              ? AutovalidateMode.onUserInteraction
+              : AutovalidateMode.disabled,
+          child: AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AuthTextField(
+                  controller: email,
+                  label: 'Email address',
+                  hint: 'name@example.com',
+                  icon: Icons.mail_outline,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [
+                    AutofillHints.email,
+                    AutofillHints.username,
+                  ],
+                  nextFocus: _passwordFocus,
+                  validator: AuthValidators.email,
+                ),
+                const SizedBox(height: 16),
+                AuthTextField(
+                  controller: password,
+                  focusNode: _passwordFocus,
+                  label: 'Password',
+                  icon: Icons.lock_outline,
+                  isPassword: true,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.password],
+                  validator: AuthValidators.password,
+                  onSubmitted: (_) => submit(),
+                ),
+              ],
             ),
           ),
         ),
-      ),
+        const SizedBox(height: 4),
+        // Wraps onto two lines with very large text instead of overflowing.
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            AuthCheckbox(
+              value: rememberMe,
+              label: 'Remember me',
+              onChanged: (value) => setState(() => rememberMe = value),
+            ),
+            AuthLinkButton(
+              label: 'Forgot password?',
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ForgotPasswordScreen(),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        AuthPrimaryButton(
+          label: 'Sign in',
+          busyLabel: 'Signing in...',
+          busy: _busy,
+          onPressed: submit,
+        ),
+      ],
     );
   }
 }

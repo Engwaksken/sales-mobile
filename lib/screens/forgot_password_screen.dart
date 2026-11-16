@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../core/branding.dart';
 import '../core/auth_store.dart';
-import '../widgets/auth_brand.dart';
-import '../widgets/api_status_banner.dart';
-import '../widgets/common.dart';
+import '../core/branding.dart';
+import '../widgets/auth_ui.dart';
 import 'password_reset_otp_screen.dart';
 
+/// Step 1 of 3 of password recovery: ask for the account email, then the
+/// server emails a 6-digit code ([PasswordResetOtpScreen] is step 2 and
+/// `ResetPasswordScreen` step 3).
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() =>
-      _ForgotPasswordScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final _formKey = GlobalKey<FormState>();
   final email = TextEditingController();
+
+  bool _busy = false;
+  bool _attempted = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -26,19 +31,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> submit() async {
-    if (email.text.trim().isEmpty) {
-      showFlash(context, 'Enter your email address.', error: true);
-      return;
-    }
+    if (_busy) return;
+    setState(() {
+      _attempted = true;
+      _error = null;
+    });
+    if (!_formKey.currentState!.validate()) return;
+
+    FocusScope.of(context).unfocus();
+    setState(() => _busy = true);
 
     final error = await context.read<AuthStore>().requestPasswordReset(
           email.text,
         );
 
     if (!mounted) return;
+    setState(() => _busy = false);
 
     if (error != null) {
-      showFlash(context, error, error: true);
+      setState(() => _error = error);
       return;
     }
 
@@ -54,53 +65,52 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthStore>();
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Forgot Password')),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            const AuthBrand(size: 76),
-            const SizedBox(height: 14),
-            const ApiStatusBanner(),
-            const SizedBox(height: 4),
-            const Text(
-              'Reset your password',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Enter your account email and ${context.brandName} will send a 6-digit verification code.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFF64748B)),
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: email,
-              keyboardType: TextInputType.emailAddress,
-              onSubmitted: (_) => submit(),
-              decoration: const InputDecoration(
-                labelText: 'Email address',
-                prefixIcon: Icon(Icons.email_outlined),
-              ),
-            ),
-            const SizedBox(height: 18),
-            FilledButton.icon(
-              onPressed: auth.loading ? null : submit,
-              icon: const Icon(Icons.mark_email_read_outlined),
-              label: Text(
-                auth.loading ? 'Sending code...' : 'Send verification code',
-              ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-              ),
-            ),
-          ],
-        ),
+    return AuthScaffold(
+      step: 'Step 1 of 3',
+      title: 'Reset your password',
+      helper: 'Enter the email you use for ${context.brandName} and '
+          "we'll send you a 6-digit code.",
+      subtitle: 'Secure account recovery',
+      showApiStatus: true,
+      footer: AuthFooterLink(
+        prompt: 'Remembered it?',
+        action: 'Back to sign in',
+        onPressed: () =>
+            Navigator.of(context).popUntil((route) => route.isFirst),
       ),
+      children: [
+        if (_error != null)
+          AuthBanner.error(
+            _error!,
+            onDismiss: () => setState(() => _error = null),
+          ),
+        Form(
+          key: _formKey,
+          autovalidateMode: _attempted
+              ? AutovalidateMode.onUserInteraction
+              : AutovalidateMode.disabled,
+          child: AutofillGroup(
+            child: AuthTextField(
+              controller: email,
+              label: 'Email address',
+              hint: 'name@example.com',
+              icon: Icons.mail_outline,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.email],
+              validator: AuthValidators.email,
+              onSubmitted: (_) => submit(),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        AuthPrimaryButton(
+          label: 'Send reset code',
+          busyLabel: 'Sending code...',
+          busy: _busy,
+          onPressed: submit,
+        ),
+      ],
     );
   }
 }

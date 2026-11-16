@@ -168,9 +168,10 @@ class NSalesApp extends StatelessWidget {
           ),
         ),
       ),
-      home: auth.loading
-          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-          : (auth.authenticated ? const HomeScreen() : const LoginScreen()),
+      // bootstrap() finishes before runApp, so auth.loading is only true while
+      // a sign-in/sign-up request runs. Swapping in a spinner then would
+      // dispose the sign-in screen and lose its error or verification step.
+      home: auth.authenticated ? const HomeScreen() : const LoginScreen(),
     );
   }
 }

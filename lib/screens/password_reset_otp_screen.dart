@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/auth_store.dart';
-import '../widgets/common.dart';
+import '../widgets/auth_ui.dart';
 import 'reset_password_screen.dart';
 
+/// Step 2 of 3 of password recovery: enter the emailed 6-digit code.
 class PasswordResetOtpScreen extends StatefulWidget {
   const PasswordResetOtpScreen({
     super.key,
@@ -19,8 +20,13 @@ class PasswordResetOtpScreen extends StatefulWidget {
 }
 
 class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
+  final _formKey = GlobalKey<FormState>();
   final otp = TextEditingController();
-  bool resending = false;
+
+  bool _busy = false;
+  bool _attempted = false;
+  String? _error;
+  String? _notice;
 
   @override
   void dispose() {
@@ -29,10 +35,16 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
   }
 
   Future<void> verify() async {
-    if (otp.text.trim().length != 6) {
-      showFlash(context, 'Enter the 6-digit OTP.', error: true);
-      return;
-    }
+    if (_busy) return;
+    setState(() {
+      _attempted = true;
+      _error = null;
+      _notice = null;
+    });
+    if (!_formKey.currentState!.validate()) return;
+
+    FocusScope.of(context).unfocus();
+    setState(() => _busy = true);
 
     final result = await context.read<AuthStore>().verifyPasswordResetOtp(
           email: widget.email,
@@ -40,13 +52,10 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
         );
 
     if (!mounted) return;
+    setState(() => _busy = false);
 
     if (result.error != null || result.resetToken == null) {
-      showFlash(
-        context,
-        result.error ?? 'The OTP could not be verified.',
-        error: true,
-      );
+      setState(() => _error = result.error ?? 'The code could not be verified.');
       return;
     }
 
@@ -61,80 +70,68 @@ class _PasswordResetOtpScreenState extends State<PasswordResetOtpScreen> {
     );
   }
 
-  Future<void> resend() async {
-    setState(() => resending = true);
+  Future<String?> resend() async {
+    setState(() {
+      _error = null;
+      _notice = null;
+    });
 
     final error = await context.read<AuthStore>().resendPasswordResetOtp(
           widget.email,
         );
 
-    if (!mounted) return;
-    setState(() => resending = false);
-
-    showFlash(
-      context,
-      error ?? 'A new password reset OTP has been sent.',
-      error: error != null,
-    );
+    if (mounted) {
+      setState(() {
+        _error = error;
+        _notice = error == null ? 'We sent a new code to ${widget.email}.' : null;
+      });
+    }
+    return error;
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthStore>();
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Verify OTP')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          const Icon(
-            Icons.password,
-            size: 64,
-            color: Color(0xFF0F766E),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Enter verification code',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'We sent a code to ${widget.email}',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFF64748B)),
-          ),
-          const SizedBox(height: 24),
-          TextField(
-            controller: otp,
-            keyboardType: TextInputType.number,
-            maxLength: 6,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 25,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 8,
-            ),
-            decoration: const InputDecoration(
-              labelText: '6-digit OTP',
-              counterText: '',
-            ),
-          ),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: auth.loading ? null : verify,
-            icon: const Icon(Icons.check_circle_outline),
-            label: Text(auth.loading ? 'Checking...' : 'Verify OTP'),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-            ),
-          ),
-          TextButton(
-            onPressed: resending ? null : resend,
-            child: Text(resending ? 'Sending...' : 'Resend OTP'),
-          ),
-        ],
+    return AuthScaffold(
+      step: 'Step 2 of 3',
+      title: 'Check your email',
+      helper: 'Enter the 6-digit code we sent to ${widget.email}.',
+      subtitle: 'Secure account recovery',
+      footer: AuthFooterLink(
+        prompt: 'Changed your mind?',
+        action: 'Back to sign in',
+        onPressed: () =>
+            Navigator.of(context).popUntil((route) => route.isFirst),
       ),
+      children: [
+        if (_error != null)
+          AuthBanner.error(
+            _error!,
+            onDismiss: () => setState(() => _error = null),
+          ),
+        if (_notice != null)
+          AuthBanner.success(
+            _notice!,
+            onDismiss: () => setState(() => _notice = null),
+          ),
+        Form(
+          key: _formKey,
+          autovalidateMode: _attempted
+              ? AutovalidateMode.onUserInteraction
+              : AutovalidateMode.disabled,
+          child: AutofillGroup(
+            child: OtpCodeField(controller: otp, onCompleted: verify),
+          ),
+        ),
+        const SizedBox(height: 24),
+        AuthPrimaryButton(
+          label: 'Verify code',
+          busyLabel: 'Checking...',
+          busy: _busy,
+          onPressed: verify,
+        ),
+        const SizedBox(height: 8),
+        ResendCodeButton(onResend: resend),
+      ],
     );
   }
 }

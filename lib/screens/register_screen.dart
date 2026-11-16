@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../core/branding.dart';
 import '../core/auth_store.dart';
-import '../widgets/auth_brand.dart';
-import '../widgets/api_status_banner.dart';
-import '../widgets/common.dart';
+import '../widgets/auth_ui.dart';
 import 'verify_registration_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -16,14 +13,19 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
   final name = TextEditingController();
   final email = TextEditingController();
   final password = TextEditingController();
   final confirm = TextEditingController();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+  final _confirmFocus = FocusNode();
 
-  bool obscure = true;
-  bool obscureConfirm = true;
   bool rememberMe = true;
+  bool _busy = false;
+  bool _attempted = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -31,22 +33,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
     email.dispose();
     password.dispose();
     confirm.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    _confirmFocus.dispose();
     super.dispose();
   }
 
   Future<void> submit() async {
-    if (name.text.trim().isEmpty ||
-        email.text.trim().isEmpty ||
-        password.text.isEmpty ||
-        confirm.text.isEmpty) {
-      showFlash(context, 'Complete all required fields.', error: true);
-      return;
-    }
+    if (_busy) return;
+    setState(() {
+      _attempted = true;
+      _error = null;
+    });
+    if (!_formKey.currentState!.validate()) return;
 
-    if (password.text != confirm.text) {
-      showFlash(context, 'The passwords do not match.', error: true);
-      return;
-    }
+    FocusScope.of(context).unfocus();
+    setState(() => _busy = true);
 
     final error = await context.read<AuthStore>().register(
           name: name.text,
@@ -56,9 +58,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
 
     if (!mounted) return;
+    setState(() => _busy = false);
 
     if (error != null) {
-      showFlash(context, error, error: true);
+      setState(() => _error = error);
       return;
     }
 
@@ -75,102 +78,98 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthStore>();
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Create Account')),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            const AuthBrand(size: 76),
-            const SizedBox(height: 14),
-            const ApiStatusBanner(),
-            const SizedBox(height: 4),
-            Text(
-              'Create your ${context.brandName} account',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'We will verify your email using a 6-digit OTP.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFF64748B)),
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: name,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Full name',
-                prefixIcon: Icon(Icons.person_outline),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: email,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Email address',
-                prefixIcon: Icon(Icons.email_outlined),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: password,
-              obscureText: obscure,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                helperText: 'At least 8 characters with upper/lowercase and a number.',
-                prefixIcon: const Icon(Icons.lock_outline),
-                suffixIcon: IconButton(
-                  onPressed: () => setState(() => obscure = !obscure),
-                  icon: Icon(obscure ? Icons.visibility : Icons.visibility_off),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: confirm,
-              obscureText: obscureConfirm,
-              decoration: InputDecoration(
-                labelText: 'Confirm password',
-                prefixIcon: const Icon(Icons.lock_reset),
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() => obscureConfirm = !obscureConfirm);
-                  },
-                  icon: Icon(
-                    obscureConfirm ? Icons.visibility : Icons.visibility_off,
-                  ),
-                ),
-              ),
-            ),
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              value: rememberMe,
-              title: const Text('Remember me after verification'),
-              onChanged: (value) {
-                setState(() => rememberMe = value ?? false);
-              },
-            ),
-            const SizedBox(height: 10),
-            FilledButton.icon(
-              onPressed: auth.loading ? null : submit,
-              icon: const Icon(Icons.person_add_alt_1),
-              label: Text(
-                auth.loading ? 'Creating account...' : 'Create account',
-              ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-              ),
-            ),
-          ],
-        ),
+    return AuthScaffold(
+      title: 'Create your account',
+      helper: "We'll email you a 6-digit code to verify your address.",
+      showApiStatus: true,
+      footer: AuthFooterLink(
+        prompt: 'Already have an account?',
+        action: 'Sign in',
+        onPressed: () =>
+            Navigator.of(context).popUntil((route) => route.isFirst),
       ),
+      children: [
+        if (_error != null)
+          AuthBanner.error(
+            _error!,
+            onDismiss: () => setState(() => _error = null),
+          ),
+        Form(
+          key: _formKey,
+          autovalidateMode: _attempted
+              ? AutovalidateMode.onUserInteraction
+              : AutovalidateMode.disabled,
+          child: AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AuthTextField(
+                  controller: name,
+                  label: 'Full name',
+                  icon: Icons.person_outline,
+                  keyboardType: TextInputType.name,
+                  textCapitalization: TextCapitalization.words,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.name],
+                  nextFocus: _emailFocus,
+                  validator: AuthValidators.name,
+                ),
+                const SizedBox(height: 16),
+                AuthTextField(
+                  controller: email,
+                  focusNode: _emailFocus,
+                  label: 'Email address',
+                  hint: 'name@example.com',
+                  icon: Icons.mail_outline,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.email],
+                  nextFocus: _passwordFocus,
+                  validator: AuthValidators.email,
+                ),
+                const SizedBox(height: 16),
+                AuthTextField(
+                  controller: password,
+                  focusNode: _passwordFocus,
+                  label: 'Password',
+                  icon: Icons.lock_outline,
+                  isPassword: true,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.newPassword],
+                  nextFocus: _confirmFocus,
+                  validator: AuthValidators.newPassword,
+                ),
+                PasswordStrengthMeter(controller: password),
+                const SizedBox(height: 16),
+                AuthTextField(
+                  controller: confirm,
+                  focusNode: _confirmFocus,
+                  label: 'Confirm password',
+                  icon: Icons.lock_outline,
+                  isPassword: true,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.newPassword],
+                  validator: AuthValidators.confirmPassword(password),
+                  onSubmitted: (_) => submit(),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        AuthCheckbox(
+          value: rememberMe,
+          label: 'Keep me signed in after verification',
+          onChanged: (value) => setState(() => rememberMe = value),
+        ),
+        const SizedBox(height: 16),
+        AuthPrimaryButton(
+          label: 'Create account',
+          busyLabel: 'Creating account...',
+          busy: _busy,
+          onPressed: submit,
+        ),
+      ],
     );
   }
 }
