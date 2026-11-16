@@ -7,17 +7,9 @@ import '../core/api_client.dart';
 import '../core/format.dart';
 import 'filter_bar.dart';
 
-const kMuted = Color(0xFF64748B);
-const kFaint = Color(0xFF94A3B8);
+import '../core/app_theme.dart';
 
-/// Body text on white.
-const kInk = Color(0xFF0F172A);
-
-/// Thin borders and dividers.
-const kHairline = Color(0xFFE2E8F0);
-
-/// Soft grey behind search fields and pickers.
-const kFieldFill = Color(0xFFF1F5F9);
+// Colours come from the theme (light or dark): see AppColors in core/app_theme.dart.
 
 /// Lets a parent screen reload a [PagedList] (after creating or editing a record).
 class PagedListController {
@@ -253,9 +245,9 @@ class EmptyState extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
       child: Column(
         children: [
-          Icon(icon, size: 44, color: kFaint),
+          Icon(icon, size: 44, color: context.faint),
           const SizedBox(height: 10),
-          Text(text, textAlign: TextAlign.center, style: const TextStyle(color: kMuted)),
+          Text(text, textAlign: TextAlign.center, style: TextStyle(color: context.muted)),
         ],
       ),
     );
@@ -274,7 +266,7 @@ class ErrorState extends StatelessWidget {
       padding: const EdgeInsets.all(28),
       child: Column(
         children: [
-          const Icon(Icons.cloud_off, size: 44, color: kFaint),
+          Icon(Icons.cloud_off, size: 44, color: context.faint),
           const SizedBox(height: 10),
           Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 12),
@@ -309,7 +301,8 @@ class StatusPill extends StatelessWidget {
   final String? status;
   final String? label;
 
-  static (Color, Color) colorsFor(String? status) {
+  /// Background and text colours for [status]; softer, darker fills in dark mode.
+  static (Color, Color) colorsFor(String? status, {bool dark = false}) {
     switch ((status ?? '').toLowerCase()) {
       case 'paid':
       case 'completed':
@@ -317,30 +310,30 @@ class StatusPill extends StatelessWidget {
       case 'active':
       case 'delivered':
       case 'open':
-        return (const Color(0xFFDCFCE7), const Color(0xFF166534));
+        return dark ? (const Color(0xFF12301F), const Color(0xFF86EFAC)) : (const Color(0xFFDCFCE7), const Color(0xFF166534));
       case 'partial':
       case 'processing':
       case 'confirmed':
       case 'ready_for_pickup':
       case 'ready_for_delivery':
       case 'out_for_delivery':
-        return (const Color(0xFFDBEAFE), const Color(0xFF1E40AF));
+        return dark ? (const Color(0xFF172A4D), const Color(0xFF93C5FD)) : (const Color(0xFFDBEAFE), const Color(0xFF1E40AF));
       case 'pending':
       case 'credit':
-        return (const Color(0xFFFEF3C7), const Color(0xFF92400E));
+        return dark ? (const Color(0xFF3A2A0C), const Color(0xFFFCD34D)) : (const Color(0xFFFEF3C7), const Color(0xFF92400E));
       case 'cancelled':
       case 'failed':
       case 'inactive':
       case 'closed':
-        return (const Color(0xFFF1F5F9), const Color(0xFF475569));
+        return dark ? (const Color(0xFF1E2B44), const Color(0xFF94A3B8)) : (const Color(0xFFF1F5F9), const Color(0xFF475569));
       default:
-        return (const Color(0xFFF1F5F9), const Color(0xFF334155));
+        return dark ? (const Color(0xFF1E2B44), const Color(0xFFCBD5E1)) : (const Color(0xFFF1F5F9), const Color(0xFF334155));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final (bg, fg) = colorsFor(status);
+    final (bg, fg) = colorsFor(status, dark: context.isDark);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
@@ -394,11 +387,11 @@ class RecordCard extends StatelessWidget {
                     Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
                     if (subtitle != null && subtitle!.isNotEmpty) ...[
                       const SizedBox(height: 2),
-                      Text(subtitle!, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kMuted, fontSize: 13)),
+                      Text(subtitle!, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.muted, fontSize: 13)),
                     ],
                     if (caption != null && caption!.isNotEmpty) ...[
                       const SizedBox(height: 2),
-                      Text(caption!, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kFaint, fontSize: 12)),
+                      Text(caption!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.faint, fontSize: 12)),
                     ],
                   ],
                 ),
@@ -468,12 +461,12 @@ class InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 120, child: Text(label, style: const TextStyle(color: kMuted))),
+          SizedBox(width: 120, child: Text(label, style: TextStyle(color: context.muted))),
           Expanded(
             child: Text(
               value!,
               textAlign: TextAlign.right,
-              style: TextStyle(fontWeight: bold ? FontWeight.w900 : FontWeight.w600, color: const Color(0xFF0F172A)),
+              style: TextStyle(fontWeight: bold ? FontWeight.w900 : FontWeight.w600, color: context.ink),
             ),
           ),
         ],
@@ -491,7 +484,7 @@ Future<bool> confirmAction(BuildContext context, {required String title, require
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
         FilledButton(
-          style: destructive ? FilledButton.styleFrom(backgroundColor: const Color(0xFFDC2626)) : null,
+          style: destructive ? FilledButton.styleFrom(backgroundColor: const Color(0xFFDC2626), foregroundColor: Colors.white) : null,
           onPressed: () => Navigator.pop(context, true),
           child: Text(confirm),
         ),
@@ -553,6 +546,7 @@ Future<T?> runApi<T>(BuildContext context, Future<T> Function(ApiClient api) act
       ..clearSnackBars()
       ..showSnackBar(SnackBar(
         content: Text(api.messageFromError(e)),
+        // Solid red/green with white text reads well in both themes.
         backgroundColor: const Color(0xFFB91C1C),
         behavior: SnackBarBehavior.floating,
       ));

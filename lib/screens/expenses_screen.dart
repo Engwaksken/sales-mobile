@@ -7,6 +7,7 @@ import '../core/api_client.dart';
 import '../widgets/filter_bar.dart';
 import 'expense_form_screen.dart';
 
+import '../core/app_theme.dart';
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
 
@@ -71,12 +72,12 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Expenses', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-                    Text('Track and scan expense receipts', style: TextStyle(color: Color(0xFF64748B))),
+                    Text('Track and scan expense receipts', style: TextStyle(color: context.muted)),
                   ],
                 ),
               ),
@@ -141,9 +142,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               },
             )
           else if (rows.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(32),
-              child: Center(child: Text('No expenses found.', style: TextStyle(color: Color(0xFF94A3B8)))),
+              child: Center(child: Text('No expenses found.', style: TextStyle(color: context.faint))),
             )
           else
             ...rows.map((raw) {

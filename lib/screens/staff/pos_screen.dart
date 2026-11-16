@@ -9,6 +9,7 @@ import '../../core/staff_lookups.dart';
 import '../../widgets/staff_ui.dart';
 import 'tender_editor.dart';
 
+import '../../core/app_theme.dart';
 class CartLine {
   CartLine(this.product, this.quantity);
 
@@ -199,7 +200,7 @@ class _PosScreenState extends State<PosScreen> {
                                   amount: money(p['price']),
                                   leading: CircleAvatar(
                                     backgroundColor: inCart > 0 ? Theme.of(context).colorScheme.primary : null,
-                                    foregroundColor: inCart > 0 ? Colors.white : null,
+                                    foregroundColor: inCart > 0 ? Theme.of(context).colorScheme.onPrimary : null,
                                     child: inCart > 0 ? Text('$inCart', style: const TextStyle(fontWeight: FontWeight.w900)) : const Icon(Icons.add),
                                   ),
                                   onTap: () => add(p),
@@ -226,9 +227,9 @@ class _CartStrip extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       constraints: const BoxConstraints(maxHeight: 190),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: context.hairline),
       ),
       child: ListView(
         shrinkWrap: true,
@@ -427,7 +428,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
             if (issue != null)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
-                child: Text(issue, style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w600)),
+                child: Text(issue, style: TextStyle(color: context.danger, fontWeight: FontWeight.w600)),
               ),
             const SizedBox(height: 12),
             FilledButton.icon(

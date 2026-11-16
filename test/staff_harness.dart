@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nsales_native/core/api_client.dart';
+import 'package:nsales_native/core/app_theme.dart';
 import 'package:nsales_native/core/staff_lookups.dart';
 import 'package:provider/provider.dart';
 
@@ -65,6 +66,7 @@ Future<StaffServer> pumpStaff(
   await tester.pumpWidget(MultiProvider(
     providers: [
       Provider<ApiClient>.value(value: api),
+      ChangeNotifierProvider<ThemeModeStore>(create: (_) => ThemeModeStore(const FlutterSecureStorage())),
       ChangeNotifierProvider<StaffLookups>.value(value: adminLookups(api)),
     ],
     child: MaterialApp(

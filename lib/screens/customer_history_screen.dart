@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/api_client.dart';
 import '../core/customer_api.dart';
 
+import '../core/app_theme.dart';
 class CustomerHistoryScreen extends StatefulWidget {
   const CustomerHistoryScreen({super.key});
 
@@ -65,9 +66,9 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen> {
                     subtitle: Text('${row['subtitle'] ?? ''}'),
                     trailing: Text(
                       '${row['date'] ?? ''}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: Color(0xFF64748B),
+                        color: context.muted,
                       ),
                     ),
                   ),

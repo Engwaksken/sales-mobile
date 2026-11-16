@@ -6,6 +6,7 @@ import '../../core/staff_lookups.dart';
 import '../../widgets/filter_bar.dart';
 import '../../widgets/staff_ui.dart';
 
+import '../../core/app_theme.dart';
 /// Stock levels and stock issues (damages, gratis, staff consumption).
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key, this.lowOnly = false});
@@ -66,7 +67,7 @@ class _StockScreenState extends State<StockScreen> with SingleTickerProviderStat
       body: Column(
         children: [
           Material(
-            color: Colors.white,
+            color: context.card,
             child: TabBar(controller: tabs, tabs: const [Tab(text: 'Stock levels'), Tab(text: 'Stock issues')]),
           ),
           Expanded(
@@ -178,7 +179,7 @@ class BranchChooser extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(multiple ? 'Branches *' : 'Branch *', style: const TextStyle(fontWeight: FontWeight.w700, color: kMuted)),
+        Text(multiple ? 'Branches *' : 'Branch *', style: TextStyle(fontWeight: FontWeight.w700, color: context.muted)),
         const SizedBox(height: 6),
         Wrap(
           spacing: 8,
@@ -298,9 +299,9 @@ class _ReceiveStockScreenState extends State<ReceiveStockScreen> {
                 ),
               ],
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 6, left: 4),
-              child: Text('Stock without a selling price cannot be sold until one is set.', style: TextStyle(color: kMuted, fontSize: 12)),
+              child: Text('Stock without a selling price cannot be sold until one is set.', style: TextStyle(color: context.muted, fontSize: 12)),
             ),
             const SizedBox(height: 14),
             DropdownButtonFormField<int?>(
@@ -393,7 +394,7 @@ class _StockEditSheetState extends State<StockEditSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('${widget.stock['product_name']}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-            Text('${widget.stock['branch_name'] ?? ''}', style: const TextStyle(color: kMuted)),
+            Text('${widget.stock['branch_name'] ?? ''}', style: TextStyle(color: context.muted)),
             const SizedBox(height: 14),
             TextField(controller: quantity, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Quantity')),
             const SizedBox(height: 12),
@@ -406,9 +407,9 @@ class _StockEditSheetState extends State<StockEditSheet> {
                 Expanded(child: TextField(controller: selling, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Selling price'))),
               ],
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 8),
-              child: Text('To take stock out for damages or gratis, use Stock issues so it is recorded.', style: TextStyle(color: kMuted, fontSize: 12)),
+              child: Text('To take stock out for damages or gratis, use Stock issues so it is recorded.', style: TextStyle(color: context.muted, fontSize: 12)),
             ),
             const SizedBox(height: 14),
             FilledButton(onPressed: saving ? null : save, child: Text(saving ? 'Saving...' : 'Save changes')),
@@ -478,7 +479,7 @@ class _StockIssueFormScreenState extends State<StockIssueFormScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Takes stock out without a sale or cash entry.', style: TextStyle(color: kMuted)),
+          Text('Takes stock out without a sale or cash entry.', style: TextStyle(color: context.muted)),
           const SizedBox(height: 14),
           _ProductField(product: product, onChanged: (p) => setState(() => product = p)),
           const SizedBox(height: 14),
@@ -553,7 +554,7 @@ class _UnitPickerState extends State<UnitPicker> {
             child: Row(
               children: [
                 Expanded(child: Text(u.label, overflow: TextOverflow.ellipsis)),
-                Text(u.category, style: const TextStyle(color: kFaint, fontSize: 12)),
+                Text(u.category, style: TextStyle(color: context.faint, fontSize: 12)),
               ],
             ),
           ),

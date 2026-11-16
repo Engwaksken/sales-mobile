@@ -7,6 +7,7 @@ import '../core/document_sharing.dart';
 import '../core/format.dart';
 import '../widgets/signature_pad.dart';
 
+import '../core/app_theme.dart';
 class CustomerOrderDetailScreen extends StatefulWidget {
   const CustomerOrderDetailScreen({super.key, required this.orderId});
 
@@ -140,13 +141,13 @@ class _CustomerOrderDetailScreenState extends State<CustomerOrderDetailScreen> {
                         radius: 13,
                         backgroundColor: done || active
                             ? Theme.of(context).colorScheme.primary
-                            : const Color(0xFFE2E8F0),
+                            : context.hairline,
                         child: Icon(
                           done ? Icons.check : Icons.circle,
                           size: done ? 15 : 7,
                           color: done || active
-                              ? Colors.white
-                              : const Color(0xFF94A3B8),
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : context.faint,
                         ),
                       ),
                       if (entry.key < timeline.length - 1)
@@ -155,7 +156,7 @@ class _CustomerOrderDetailScreenState extends State<CustomerOrderDetailScreen> {
                           height: 45,
                           color: done
                               ? Theme.of(context).colorScheme.primary
-                              : const Color(0xFFE2E8F0),
+                              : context.hairline,
                         ),
                     ],
                   ),
@@ -171,16 +172,16 @@ class _CustomerOrderDetailScreenState extends State<CustomerOrderDetailScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.w800,
                               color: done || active
-                                  ? const Color(0xFF0F172A)
-                                  : const Color(0xFF94A3B8),
+                                  ? context.ink
+                                  : context.faint,
                             ),
                           ),
                           if ('${step['date'] ?? ''}'.isNotEmpty)
                             Text(
                               '${step['date']}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
-                                color: Color(0xFF64748B),
+                                color: context.muted,
                               ),
                             ),
                         ],
@@ -299,7 +300,7 @@ class _CustomerOrderDetailScreenState extends State<CustomerOrderDetailScreen> {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(color: Color(0xFF64748B)),
+              style: TextStyle(color: context.muted),
             ),
           ),
           Expanded(

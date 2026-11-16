@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/format.dart';
 
+import '../../core/app_theme.dart';
 /// One way the customer pays: method + amount.
 class Tender {
   Tender(this.method, double amount) : amount = TextEditingController(text: amount > 0 ? _plain(amount) : '');
@@ -74,7 +75,7 @@ class _TenderEditorState extends State<TenderEditor> {
                 if (widget.tenders.length > 1)
                   IconButton(
                     tooltip: 'Remove',
-                    icon: const Icon(Icons.remove_circle_outline, color: Color(0xFFDC2626)),
+                    icon: Icon(Icons.remove_circle_outline, color: context.danger),
                     onPressed: () {
                       // Not disposed here: the field may still be in this frame's tree.
                       setState(() => widget.tenders.removeAt(i));
@@ -108,7 +109,7 @@ class _TenderEditorState extends State<TenderEditor> {
                         : 'Fully paid',
                 style: TextStyle(
                   fontWeight: FontWeight.w800,
-                  color: remaining < -0.005 ? const Color(0xFFDC2626) : const Color(0xFF64748B),
+                  color: remaining < -0.005 ? context.danger : context.muted,
                 ),
               ),
           ],

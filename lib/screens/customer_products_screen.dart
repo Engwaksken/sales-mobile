@@ -6,6 +6,7 @@ import '../core/config.dart';
 import '../widgets/filter_bar.dart';
 import '../widgets/staff_ui.dart';
 
+import '../core/app_theme.dart';
 class CustomerProductsScreen extends StatefulWidget {
   const CustomerProductsScreen({super.key});
 
@@ -134,12 +135,12 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
                           Expanded(
                             child: Container(
                               width: double.infinity,
-                              color: const Color(0xFFF8FAFC),
+                              color: context.panel,
                               child: imageUrl.isEmpty
-                                  ? const Icon(
+                                  ? Icon(
                                       Icons.image_outlined,
                                       size: 52,
-                                      color: Color(0xFFCBD5E1),
+                                      color: context.faint,
                                     )
                                   : Image.network(
                                       imageUrl,
@@ -174,9 +175,9 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
                                 const SizedBox(height: 2),
                                 Text(
                                   '${row['available'] ?? 0} available',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
-                                    color: Color(0xFF64748B),
+                                    color: context.muted,
                                   ),
                                 ),
                               ],

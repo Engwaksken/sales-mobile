@@ -8,6 +8,7 @@ import '../../widgets/filter_bar.dart';
 import '../../widgets/staff_ui.dart';
 import 'sales_screens.dart';
 
+import '../../core/app_theme.dart';
 /// Online orders with a stage filter.
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key, this.initialStatus});
@@ -260,7 +261,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               SectionCard(
                 title: 'History',
                 children: [
-                  if (logs.isEmpty) const Text('No history yet.', style: TextStyle(color: kMuted)),
+                  if (logs.isEmpty) Text('No history yet.', style: TextStyle(color: context.muted)),
                   for (final raw in logs)
                     Builder(builder: (context) {
                       final log = Map<String, dynamic>.from(raw as Map);
@@ -269,14 +270,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.circle, size: 9, color: kFaint)),
+                            Padding(padding: EdgeInsets.only(top: 4), child: Icon(Icons.circle, size: 9, color: context.faint)),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('${log['description'] ?? titleCase('${log['action']}')}'),
-                                  Text(formatDate(log['created_at'], withTime: true), style: const TextStyle(color: kFaint, fontSize: 12)),
+                                  Text(formatDate(log['created_at'], withTime: true), style: TextStyle(color: context.faint, fontSize: 12)),
                                 ],
                               ),
                             ),

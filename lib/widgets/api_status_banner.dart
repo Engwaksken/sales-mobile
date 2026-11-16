@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
+import '../core/app_theme.dart';
 
 class ApiStatusBanner extends StatefulWidget {
   const ApiStatusBanner({super.key});
@@ -41,16 +42,16 @@ class _ApiStatusBannerState extends State<ApiStatusBanner> {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF7ED),
-        border: Border.all(color: const Color(0xFFFED7AA)),
+        color: context.warningSoft,
+        border: Border.all(color: context.warningBorder),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
             Icons.warning_amber_rounded,
-            color: Color(0xFFC2410C),
+            color: context.warningInk,
           ),
           SizedBox(width: 10),
           Expanded(
@@ -58,7 +59,7 @@ class _ApiStatusBannerState extends State<ApiStatusBanner> {
               "We can't reach the server right now. Check your internet "
               'connection. Signing in may not work until it is back.',
               style: TextStyle(
-                color: Color(0xFF9A3412),
+                color: context.warningInk,
                 fontSize: 12,
                 height: 1.4,
                 fontWeight: FontWeight.w600,

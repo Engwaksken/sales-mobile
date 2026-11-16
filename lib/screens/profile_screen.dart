@@ -13,6 +13,7 @@ import '../core/format.dart';
 import '../widgets/signature_pad.dart';
 import '../widgets/staff_ui.dart';
 
+import '../core/app_theme.dart';
 /// The signed-in user's own profile: photo, name, password, and for customers
 /// their phone and delivery address.
 class ProfileScreen extends StatefulWidget {
@@ -95,13 +96,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             if (profile['photo_url'] != null || photo != null)
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.delete_outline,
-                  color: Color(0xFFDC2626),
+                  color: context.danger,
                 ),
-                title: const Text(
+                title: Text(
                   'Remove photo',
-                  style: TextStyle(color: Color(0xFFDC2626)),
+                  style: TextStyle(color: context.danger),
                 ),
                 onTap: () => Navigator.pop(sheet, 'remove'),
               ),
@@ -220,21 +221,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Added automatically to invoices and receipts of the sales you make.',
-              style: TextStyle(color: kMuted, fontSize: 13),
+              style: TextStyle(color: context.muted, fontSize: 13),
             ),
             const SizedBox(height: 12),
             Container(
               height: 96,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: context.panel,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: context.hairline),
               ),
               child: bytes == null
-                  ? const Text('No signature yet', style: TextStyle(color: kFaint))
+                  ? Text('No signature yet', style: TextStyle(color: context.faint))
                   : Padding(
                       padding: const EdgeInsets.all(10),
                       child: Image.memory(bytes, fit: BoxFit.contain, semanticLabel: 'Your signature'),
@@ -406,12 +407,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               FilledButton.icon(
                 onPressed: saving ? null : save,
                 icon: saving
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         ),
                       )
                     : const Icon(Icons.save_outlined),
@@ -421,6 +422,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 18),
                 signatureCard(),
               ],
+              const SizedBox(height: 18),
+              const _AppearanceCard(),
               const SizedBox(height: 18),
               Card(
                 child: Column(
@@ -437,7 +440,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         title: const Text('Member since'),
                         trailing: Text(
                           formatDate(profile['member_since']),
-                          style: const TextStyle(color: kMuted),
+                          style: TextStyle(color: context.muted),
                         ),
                       ),
                   ],
@@ -557,6 +560,49 @@ class _PasswordSheetState extends State<_PasswordSheet> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// System / Light / Dark, remembered on this phone.
+class _AppearanceCard extends StatelessWidget {
+  const _AppearanceCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final store = context.watch<ThemeModeStore>();
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.dark_mode_outlined),
+                SizedBox(width: 12),
+                Expanded(child: Text('Appearance', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800))),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<ThemeMode>(
+              showSelectedIcon: false,
+              segments: const [
+                ButtonSegment(value: ThemeMode.system, label: Text('System'), icon: Icon(Icons.brightness_auto_outlined)),
+                ButtonSegment(value: ThemeMode.light, label: Text('Light'), icon: Icon(Icons.light_mode_outlined)),
+                ButtonSegment(value: ThemeMode.dark, label: Text('Dark'), icon: Icon(Icons.dark_mode_outlined)),
+              ],
+              selected: {store.mode},
+              onSelectionChanged: (value) => store.set(value.first),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              store.mode == ThemeMode.system ? "Follows your phone's light or dark setting." : 'Applies on this phone only.',
+              style: TextStyle(color: context.muted, fontSize: 12.5),
+            ),
+          ],
         ),
       ),
     );

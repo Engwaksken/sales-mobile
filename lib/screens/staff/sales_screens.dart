@@ -11,6 +11,7 @@ import '../../widgets/staff_ui.dart';
 import 'pos_screen.dart';
 import 'tender_editor.dart';
 
+import '../../core/app_theme.dart';
 const saleStatuses = {
   'paid': 'Paid',
   'partial': 'Part paid',
@@ -308,11 +309,11 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                 title: 'Payments',
                 children: [
                   if (payments.isEmpty)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(vertical: 8),
                       child: Text(
                         'No payments yet.',
-                        style: TextStyle(color: kMuted),
+                        style: TextStyle(color: context.muted),
                       ),
                     )
                   else
@@ -452,7 +453,7 @@ class _RecordPaymentSheetState extends State<RecordPaymentSheet> {
             ),
             Text(
               '${widget.sale['invoice_no']} · balance ${money(balance)}',
-              style: const TextStyle(color: kMuted),
+              style: TextStyle(color: context.muted),
             ),
             const SizedBox(height: 14),
             TenderEditor(

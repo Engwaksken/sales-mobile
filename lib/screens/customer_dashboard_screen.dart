@@ -7,6 +7,7 @@ import '../core/config.dart';
 import '../widgets/common.dart';
 import 'customer_order_detail_screen.dart';
 
+import '../core/app_theme.dart';
 class CustomerDashboardScreen extends StatefulWidget {
   const CustomerDashboardScreen({super.key});
 
@@ -101,7 +102,8 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: const Color(0xFF111827),
+              // A dark welcome card in both themes; lifted slightly off the dark background.
+              color: context.isDark ? const Color(0xFF1B2840) : const Color(0xFF111827),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -212,7 +214,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
               ),
               Text(
                 '${counts['all_orders'] ?? 0} total',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                style: TextStyle(fontSize: 12, color: context.muted),
               ),
             ],
           ),
@@ -265,7 +267,7 @@ class _Shortcut extends StatelessWidget {
             Text(
               label,
               maxLines: 1,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+              style: TextStyle(fontSize: 10, color: context.muted),
             ),
           ],
         ),

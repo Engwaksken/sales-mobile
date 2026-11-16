@@ -6,6 +6,7 @@ import '../../core/format.dart';
 import '../../widgets/filter_bar.dart';
 import '../../widgets/staff_ui.dart';
 
+import '../../core/app_theme.dart';
 /// Customer support conversations.
 class ChatsScreen extends StatefulWidget {
   const ChatsScreen({super.key, this.initialStatus = 'open'});
@@ -149,7 +150,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           children: [
             Text('${chat['name'] ?? 'Conversation'}', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
             if ((chat['phone'] ?? chat['email']) != null)
-              Text('${chat['phone'] ?? chat['email']}', style: const TextStyle(fontSize: 12, color: kMuted)),
+              Text('${chat['phone'] ?? chat['email']}', style: TextStyle(fontSize: 12, color: context.muted)),
           ],
         ),
         actions: [
@@ -178,21 +179,21 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       padding: const EdgeInsets.fromLTRB(12, 9, 12, 7),
                       decoration: BoxDecoration(
-                        color: staff ? scheme.primary : Colors.white,
+                        color: staff ? scheme.primary : context.card,
                         borderRadius: BorderRadius.circular(14),
-                        border: staff ? null : Border.all(color: const Color(0xFFE2E8F0)),
+                        border: staff ? null : Border.all(color: context.hairline),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (staff && m['sender_name'] != null)
-                            Text('${m['sender_name']}', style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700)),
+                            Text('${m['sender_name']}', style: TextStyle(color: scheme.onPrimary.withValues(alpha: .75), fontSize: 11, fontWeight: FontWeight.w700)),
                           Text(
                             m['message']?.toString() ?? (m['has_attachment'] == true ? '[Attachment — open on the website]' : ''),
-                            style: TextStyle(color: staff ? Colors.white : const Color(0xFF0F172A)),
+                            style: TextStyle(color: staff ? scheme.onPrimary : context.ink),
                           ),
                           const SizedBox(height: 3),
-                          Text(formatDate(m['created_at'], withTime: true), style: TextStyle(fontSize: 10.5, color: staff ? Colors.white70 : kFaint)),
+                          Text(formatDate(m['created_at'], withTime: true), style: TextStyle(fontSize: 10.5, color: staff ? scheme.onPrimary.withValues(alpha: .75) : context.faint)),
                         ],
                       ),
                     ),

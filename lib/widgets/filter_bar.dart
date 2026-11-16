@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../core/format.dart';
-import 'staff_ui.dart';
 
+import '../core/app_theme.dart';
 /// The app's one filter pattern: a compact bar under the app bar (search,
 /// quick filters and a "Filters" button with a badge), removable chips for
 /// the filters in use, and a bottom sheet holding the full set.
@@ -305,8 +305,8 @@ class FilterBar extends StatelessWidget {
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainerLowest,
       child: DecoratedBox(
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: kHairline)),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: context.hairline)),
         ),
         child: Padding(
           padding: EdgeInsets.only(bottom: endsWithChips ? 2 : 10),
@@ -345,16 +345,16 @@ class _SearchField extends StatelessWidget {
         onChanged: onChanged,
         onSubmitted: onSubmitted,
         textInputAction: TextInputAction.search,
-        style: const TextStyle(fontSize: 15, color: kInk),
+        style: TextStyle(fontSize: 15, color: context.ink),
         decoration: InputDecoration(
           hintText: hint,
           hintMaxLines: 1,
           isDense: true,
           filled: true,
-          fillColor: kFieldFill,
+          fillColor: context.fieldFill,
           constraints: const BoxConstraints(minHeight: 48),
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
-          prefixIcon: const Icon(Icons.search, color: kMuted, size: 22),
+          prefixIcon: Icon(Icons.search, color: context.muted, size: 22),
           border: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide.none),
           enabledBorder: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide.none),
           focusedBorder: OutlineInputBorder(
@@ -365,7 +365,7 @@ class _SearchField extends StatelessWidget {
               ? null
               : IconButton(
                   tooltip: 'Clear search',
-                  icon: const Icon(Icons.close, size: 20, color: kMuted),
+                  icon: Icon(Icons.close, size: 20, color: context.muted),
                   onPressed: () {
                     controller.clear();
                     onCleared?.call();
@@ -397,9 +397,9 @@ class _FiltersButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(48, 48),
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          foregroundColor: active ? colors.primary : kInk,
+          foregroundColor: active ? colors.primary : context.ink,
           backgroundColor: active ? colors.primary.withValues(alpha: 0.08) : null,
-          side: BorderSide(color: active ? colors.primary : kHairline),
+          side: BorderSide(color: active ? colors.primary : context.hairline),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
@@ -456,7 +456,7 @@ class FilterPill extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 200),
         child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
-      avatar: icon == null ? null : Icon(icon, size: 16, color: selected ? colors.primary : kMuted),
+      avatar: icon == null ? null : Icon(icon, size: 16, color: selected ? colors.primary : context.muted),
       selected: selected,
       onSelected: onSelected,
       showCheckmark: false,
@@ -464,11 +464,11 @@ class FilterPill extends StatelessWidget {
       labelStyle: TextStyle(
         fontSize: 13.5,
         fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-        color: selected ? colors.primary : kInk,
+        color: selected ? colors.primary : context.ink,
       ),
       backgroundColor: colors.surfaceContainerLowest,
       selectedColor: colors.primary.withValues(alpha: 0.12),
-      side: BorderSide(color: selected ? colors.primary : kHairline),
+      side: BorderSide(color: selected ? colors.primary : context.hairline),
       shape: const StadiumBorder(),
     );
   }
@@ -536,9 +536,9 @@ class _QuickRowState extends State<_QuickRow> {
     for (final f in widget.filters) {
       if (children.isNotEmpty) {
         children.add(
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 4, vertical: 14),
-            child: VerticalDivider(width: 1, color: kHairline),
+            child: VerticalDivider(width: 1, color: context.hairline),
           ),
         );
       }
@@ -727,7 +727,7 @@ class _FilterSheetState extends State<FilterSheet> {
                       widget.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, color: kInk),
+                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, color: context.ink),
                     ),
                   ),
                 ),
@@ -740,7 +740,7 @@ class _FilterSheetState extends State<FilterSheet> {
               ],
             ),
           ),
-          const Divider(height: 1, color: kHairline),
+          Divider(height: 1, color: context.hairline),
           Flexible(
             child: ListView(
               shrinkWrap: true,
@@ -754,7 +754,7 @@ class _FilterSheetState extends State<FilterSheet> {
           DecoratedBox(
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerLowest,
-              border: const Border(top: BorderSide(color: kHairline)),
+              border: Border(top: BorderSide(color: context.hairline)),
             ),
             child: SafeArea(
               top: false,
@@ -787,11 +787,11 @@ class _FilterSheetState extends State<FilterSheet> {
           onChanged: set,
           title: Text(
             f.label,
-            style: const TextStyle(fontWeight: FontWeight.w700, color: kInk),
+            style: TextStyle(fontWeight: FontWeight.w700, color: context.ink),
           ),
           subtitle: f.description == null
               ? null
-              : Text(f.description!, style: const TextStyle(color: kMuted, fontSize: 13)),
+              : Text(f.description!, style: TextStyle(color: context.muted, fontSize: 13)),
         ),
       );
     }
@@ -819,17 +819,17 @@ class _FilterSheetState extends State<FilterSheet> {
             excludeSemantics: true,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(color: kFieldFill, borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(color: context.fieldFill, borderRadius: BorderRadius.circular(12)),
               child: Row(
                 children: [
-                  const Icon(Icons.event_note_outlined, size: 20, color: kMuted),
+                  Icon(Icons.event_note_outlined, size: 20, color: context.muted),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       f.describeDates(value),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w700, color: kInk),
+                      style: TextStyle(fontWeight: FontWeight.w700, color: context.ink),
                     ),
                   ),
                 ],
@@ -849,7 +849,7 @@ class _FilterSheetState extends State<FilterSheet> {
           f.label,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5, color: kInk),
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5, color: context.ink),
         ),
         const SizedBox(height: 8),
         body,
@@ -881,7 +881,7 @@ class _PickerField extends StatelessWidget {
       label: semanticLabel,
       excludeSemantics: true,
       child: Material(
-        color: kFieldFill,
+        color: context.fieldFill,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
@@ -892,7 +892,7 @@ class _PickerField extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Row(
                 children: [
-                  Icon(icon, size: 20, color: kMuted),
+                  Icon(icon, size: 20, color: context.muted),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -901,11 +901,11 @@ class _PickerField extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontWeight: placeholder ? FontWeight.w500 : FontWeight.w700,
-                        color: placeholder ? kMuted : kInk,
+                        color: placeholder ? context.muted : context.ink,
                       ),
                     ),
                   ),
-                  const Icon(Icons.expand_more, color: kMuted),
+                  Icon(Icons.expand_more, color: context.muted),
                 ],
               ),
             ),
@@ -973,7 +973,7 @@ class _OptionPickerState extends State<_OptionPicker> {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? colors.primary : kInk,
+            color: selected ? colors.primary : context.ink,
           ),
         ),
         trailing: selected ? Icon(Icons.check, color: colors.primary, semanticLabel: 'Selected') : null,
@@ -992,7 +992,7 @@ class _OptionPickerState extends State<_OptionPicker> {
               f.label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, color: kInk),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, color: context.ink),
             ),
           ),
           Padding(
@@ -1010,12 +1010,12 @@ class _OptionPickerState extends State<_OptionPicker> {
                 if (needle.isEmpty) tile(f.allLabel, null),
                 for (final o in options) tile(o.label, o.value),
                 if (options.isEmpty)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.all(28),
                     child: Text(
                       'No matches.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: kMuted),
+                      style: TextStyle(color: context.muted),
                     ),
                   ),
               ],
@@ -1052,20 +1052,20 @@ class FilteredEmptyState extends StatelessWidget {
           Container(
             width: 64,
             height: 64,
-            decoration: const BoxDecoration(color: kFieldFill, shape: BoxShape.circle),
-            child: const Icon(Icons.filter_alt_off_outlined, size: 30, color: kFaint),
+            decoration: BoxDecoration(color: context.fieldFill, shape: BoxShape.circle),
+            child: Icon(Icons.filter_alt_off_outlined, size: 30, color: context.faint),
           ),
           const SizedBox(height: 14),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: kInk),
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: context.ink),
           ),
           const SizedBox(height: 6),
           Text(
             hint,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: kMuted),
+            style: TextStyle(color: context.muted),
           ),
           const SizedBox(height: 16),
           OutlinedButton.icon(

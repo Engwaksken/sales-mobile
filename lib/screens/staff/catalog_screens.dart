@@ -10,6 +10,7 @@ import '../../core/staff_lookups.dart';
 import '../../widgets/filter_bar.dart';
 import '../../widgets/staff_ui.dart';
 
+import '../../core/app_theme.dart';
 enum FieldKind { text, email, phone, multiline, status, toggle, choice }
 
 class CatalogField {
@@ -412,10 +413,10 @@ class _Thumb extends StatelessWidget {
       child: Container(
         width: 46,
         height: 46,
-        color: const Color(0xFFF1F5F9),
+        color: context.fieldFill,
         child: url == null
-            ? const Icon(Icons.image_outlined, color: kFaint)
-            : Image.network(url!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const Icon(Icons.broken_image_outlined, color: kFaint)),
+            ? Icon(Icons.image_outlined, color: context.faint)
+            : Image.network(url!, fit: BoxFit.cover, errorBuilder: (_, _, _) => Icon(Icons.broken_image_outlined, color: context.faint)),
       ),
     );
   }
@@ -516,12 +517,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 child: Container(
                   width: 140,
                   height: 140,
-                  color: const Color(0xFFF1F5F9),
+                  color: context.fieldFill,
                   child: photo != null
                       ? Image.file(File(photo!.path), fit: BoxFit.cover)
                       : imageUrl != null
-                          ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, _, _) => const Icon(Icons.image_outlined, size: 40, color: kFaint))
-                          : const Icon(Icons.image_outlined, size: 40, color: kFaint),
+                          ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, _, _) => Icon(Icons.image_outlined, size: 40, color: context.faint))
+                          : Icon(Icons.image_outlined, size: 40, color: context.faint),
                 ),
               ),
             ),

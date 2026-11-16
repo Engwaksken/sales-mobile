@@ -7,6 +7,7 @@ import '../../core/staff_lookups.dart';
 import '../../widgets/filter_bar.dart';
 import '../../widgets/staff_ui.dart';
 
+import '../../core/app_theme.dart';
 /// Reports the signed-in user may open.
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -254,14 +255,14 @@ class _ReportViewScreenState extends State<ReportViewScreen> {
                             padding: const EdgeInsets.only(bottom: 10),
                             child: Row(
                               children: [
-                                const Icon(Icons.event_note_outlined, size: 16, color: kMuted),
+                                Icon(Icons.event_note_outlined, size: 16, color: context.muted),
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
                                     formatDateRange(range.start, range.end),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(color: kMuted, fontWeight: FontWeight.w600),
+                                    style: TextStyle(color: context.muted, fontWeight: FontWeight.w600),
                                   ),
                                 ),
                               ],
@@ -272,7 +273,7 @@ class _ReportViewScreenState extends State<ReportViewScreen> {
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Text(
                                 'Showing the first ${rows.length} of $total rows. Export the full report from the website.',
-                                style: const TextStyle(color: kMuted),
+                                style: TextStyle(color: context.muted),
                               ),
                             ),
                           for (final raw in rows)

@@ -9,6 +9,7 @@ import 'customer_payments_screen.dart';
 import 'profile_screen.dart';
 import 'notification_settings_screen.dart';
 
+import '../core/app_theme.dart';
 class CustomerAccountScreen extends StatelessWidget {
   const CustomerAccountScreen({
     super.key,
@@ -52,8 +53,8 @@ class CustomerAccountScreen extends StatelessWidget {
                   ),
                   Text(
                     '${user?['email'] ?? ''}',
-                    style: const TextStyle(
-                      color: Color(0xFF64748B),
+                    style: TextStyle(
+                      color: context.muted,
                     ),
                   ),
                 ],

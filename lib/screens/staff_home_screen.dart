@@ -21,6 +21,7 @@ import 'staff/report_screens.dart';
 import 'staff/sales_screens.dart';
 import 'staff/stock_screens.dart';
 
+import '../core/app_theme.dart';
 /// One area of the staff workspace. [permission] is the website's permission key
 /// that unlocks it (admins pass everything); null means every staff member.
 class StaffModule {
@@ -387,9 +388,9 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
                     ),
                     Text(
                       access.roleLabel,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF64748B),
+                        color: context.muted,
                       ),
                     ),
                   ],
@@ -474,7 +475,7 @@ class StaffMoreScreen extends StatelessWidget {
           appBar: AppBar(
             title: Text(module.label),
             bottom: module.viewOnly
-                ? const PreferredSize(
+                ? PreferredSize(
                     preferredSize: Size.fromHeight(26),
                     child: Padding(
                       padding: EdgeInsets.only(bottom: 8),
@@ -482,7 +483,7 @@ class StaffMoreScreen extends StatelessWidget {
                         'View only · make changes on the website',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF64748B),
+                          color: context.muted,
                         ),
                       ),
                     ),
@@ -551,7 +552,7 @@ class StaffMoreScreen extends StatelessWidget {
                         if (access.email.isNotEmpty)
                           Text(
                             access.email,
-                            style: const TextStyle(color: Color(0xFF64748B)),
+                            style: TextStyle(color: context.muted),
                           ),
                         const SizedBox(height: 6),
                         Container(
@@ -575,7 +576,7 @@ class StaffMoreScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: Color(0xFF94A3B8)),
+                  Icon(Icons.chevron_right, color: context.faint),
                 ],
               ),
             ),
@@ -586,11 +587,11 @@ class StaffMoreScreen extends StatelessWidget {
             padding: const EdgeInsets.only(left: 4, top: 18, bottom: 8),
             child: Text(
               entry.key.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 letterSpacing: 0.6,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF64748B),
+                color: context.muted,
               ),
             ),
           ),
@@ -635,11 +636,11 @@ class StaffMoreScreen extends StatelessWidget {
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.logout, color: Color(0xFFDC2626)),
-                title: const Text(
+                leading: Icon(Icons.logout, color: context.danger),
+                title: Text(
                   'Logout',
                   style: TextStyle(
-                    color: Color(0xFFDC2626),
+                    color: context.danger,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

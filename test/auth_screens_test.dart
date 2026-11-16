@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nsales_native/core/api_client.dart';
+import 'package:nsales_native/core/app_theme.dart';
 import 'package:nsales_native/core/auth_store.dart';
 import 'package:nsales_native/core/branding.dart';
 import 'package:nsales_native/core/config.dart';
@@ -86,6 +87,7 @@ Future<FakeServer> pumpAuth(
         Provider<ApiClient>.value(value: api),
         ChangeNotifierProvider<AuthStore>.value(value: auth),
         ChangeNotifierProvider<BrandingStore>.value(value: branding),
+        ChangeNotifierProvider<ThemeModeStore>(create: (_) => ThemeModeStore(const FlutterSecureStorage())),
       ],
       child: app,
     ),

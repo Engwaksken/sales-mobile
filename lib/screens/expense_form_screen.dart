@@ -11,6 +11,7 @@ import '../core/staff_lookups.dart';
 import '../services/receipt_ocr_service.dart';
 import '../widgets/common.dart';
 
+import '../core/app_theme.dart';
 /// Receipts say "MTN MoMo", "VISA", "EFT"...; map them onto the app's methods.
 String? matchPaymentMethod(String text, List<String> methods) {
   final t = text.toLowerCase();
@@ -280,13 +281,13 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'The receipt is read on the phone and fills the fields below. Check them before saving.',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF64748B),
+                          color: context.muted,
                         ),
                       ),
                     ),
@@ -520,6 +521,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
+                      // Scanned text keeps its dark "receipt printout" panel in both themes.
                       color: const Color(0xFF0F172A),
                       borderRadius: BorderRadius.circular(12),
                     ),

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../core/api_client.dart';
 import '../widgets/staff_ui.dart';
 
+import '../core/app_theme.dart';
 /// Lets the signed-in user choose which notifications they get. The server
 /// decides which options apply to their role; changes save straight away.
 class NotificationSettingsScreen extends StatefulWidget {
@@ -100,7 +101,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 18, 4, 8),
-          child: Text(title.toUpperCase(), style: const TextStyle(fontSize: 12, letterSpacing: 0.6, fontWeight: FontWeight.w800, color: kMuted)),
+          child: Text(title.toUpperCase(), style: TextStyle(fontSize: 12, letterSpacing: 0.6, fontWeight: FontWeight.w800, color: context.muted)),
         ),
         Card(
           child: Column(
@@ -118,7 +119,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     padding: const EdgeInsets.fromLTRB(72, 0, 12, 12),
                     child: Row(
                       children: [
-                        const Expanded(child: Text('Alert me at', style: TextStyle(color: kMuted))),
+                        Expanded(child: Text('Alert me at', style: TextStyle(color: context.muted))),
                         IconButton.outlined(
                           visualDensity: VisualDensity.compact,
                           onPressed: threshold! > 0 ? () => changeThreshold(threshold! - 1) : null,
@@ -134,7 +135,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                           icon: const Icon(Icons.add),
                         ),
                         const SizedBox(width: 6),
-                        const Text('or fewer', style: TextStyle(color: kMuted)),
+                        Text('or fewer', style: TextStyle(color: context.muted)),
                       ],
                     ),
                   ),
@@ -169,11 +170,11 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         builder: (context) => ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(4, 12, 4, 0),
               child: Text(
                 'Choose what you want to be told about. Changes save straight away and also apply on the website.',
-                style: TextStyle(color: kMuted),
+                style: TextStyle(color: context.muted),
               ),
             ),
             if (inApp.isNotEmpty) section('In the app', inApp),

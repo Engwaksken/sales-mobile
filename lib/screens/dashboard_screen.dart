@@ -10,6 +10,7 @@ import 'staff/module_router.dart';
 import 'staff/order_screens.dart';
 import 'staff/sales_screens.dart';
 
+import '../core/app_theme.dart';
 /// Staff dashboard: tappable statistic cards, charts and recent records.
 /// What appears depends on the user's permissions (decided by the server).
 class DashboardScreen extends StatefulWidget {
@@ -117,7 +118,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             data['branch_scoped'] == true
                 ? 'Your branch, ${formatDate(DateTime.now().toIso8601String())}'
                 : 'All branches, ${formatDate(DateTime.now().toIso8601String())}',
-            style: const TextStyle(color: kMuted),
+            style: TextStyle(color: context.muted),
           ),
           const SizedBox(height: 14),
           LayoutBuilder(
@@ -335,6 +336,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
+// Chart series colours; mid-tones that read on both light and dark backgrounds.
 const _palette = [
   Color(0xFF0F766E),
   Color(0xFF2563EB),
@@ -362,7 +364,7 @@ class _CollapsibleSection extends StatelessWidget {
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(color: kMuted, fontSize: 12),
+        style: TextStyle(color: context.muted, fontSize: 12),
       ),
       children: [
         Padding(padding: const EdgeInsets.fromLTRB(8, 0, 8, 8), child: child),
@@ -403,7 +405,7 @@ class _ChartCard extends StatelessWidget {
               title,
               style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
             ),
-            Text(subtitle, style: const TextStyle(color: kMuted, fontSize: 12)),
+            Text(subtitle, style: TextStyle(color: context.muted, fontSize: 12)),
             if (legend.isNotEmpty) ...[
               const SizedBox(height: 8),
               Wrap(
@@ -466,7 +468,7 @@ class _MonthlyBars extends StatelessWidget {
           gridData: FlGridData(
             drawVerticalLine: false,
             getDrawingHorizontalLine: (_) =>
-                const FlLine(color: Color(0xFFE2E8F0), strokeWidth: 1),
+                FlLine(color: context.hairline, strokeWidth: 1),
           ),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
@@ -478,7 +480,7 @@ class _MonthlyBars extends StatelessWidget {
                 reservedSize: 42,
                 getTitlesWidget: (value, meta) => Text(
                   _axis(value),
-                  style: const TextStyle(fontSize: 10, color: kMuted),
+                  style: TextStyle(fontSize: 10, color: context.muted),
                 ),
               ),
             ),
@@ -491,7 +493,7 @@ class _MonthlyBars extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
                       i >= 0 && i < rows.length ? '${rows[i]['label']}' : '',
-                      style: const TextStyle(fontSize: 11, color: kMuted),
+                      style: TextStyle(fontSize: 11, color: context.muted),
                     ),
                   );
                 },
@@ -560,7 +562,7 @@ class _DailyLine extends StatelessWidget {
           gridData: FlGridData(
             drawVerticalLine: false,
             getDrawingHorizontalLine: (_) =>
-                const FlLine(color: Color(0xFFE2E8F0), strokeWidth: 1),
+                FlLine(color: context.hairline, strokeWidth: 1),
           ),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
@@ -572,7 +574,7 @@ class _DailyLine extends StatelessWidget {
                 reservedSize: 42,
                 getTitlesWidget: (value, meta) => Text(
                   _axis(value),
-                  style: const TextStyle(fontSize: 10, color: kMuted),
+                  style: TextStyle(fontSize: 10, color: context.muted),
                 ),
               ),
             ),
@@ -591,7 +593,7 @@ class _DailyLine extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
                       '${rows[i]['label']}',
-                      style: const TextStyle(fontSize: 10, color: kMuted),
+                      style: TextStyle(fontSize: 10, color: context.muted),
                     ),
                   );
                 },
@@ -704,7 +706,7 @@ class _MethodsPie extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: Text(
                   money(total),
-                  style: const TextStyle(color: kMuted, fontSize: 12),
+                  style: TextStyle(color: context.muted, fontSize: 12),
                 ),
               ),
             ],
@@ -764,7 +766,7 @@ class _TopProducts extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   '${formatNumber(r['quantity'])} sold',
-                  style: const TextStyle(color: kMuted, fontSize: 12),
+                  style: TextStyle(color: context.muted, fontSize: 12),
                 ),
               ],
             ),
@@ -810,8 +812,8 @@ class _StageBars extends StatelessWidget {
                       child: LinearProgressIndicator(
                         value: top > 0 ? toDouble(r['value']) / top : 0,
                         minHeight: 10,
-                        color: StatusPill.colorsFor('${r['key']}').$2,
-                        backgroundColor: const Color(0xFFF1F5F9),
+                        color: StatusPill.colorsFor('${r['key']}', dark: context.isDark).$2,
+                        backgroundColor: context.fieldFill,
                       ),
                     ),
                   ),
@@ -823,7 +825,7 @@ class _StageBars extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                   ),
-                  const Icon(Icons.chevron_right, size: 18, color: kFaint),
+                  Icon(Icons.chevron_right, size: 18, color: context.faint),
                 ],
               ),
             ),

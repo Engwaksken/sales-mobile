@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../core/api_client.dart';
 import '../widgets/filter_bar.dart';
 
+import '../core/app_theme.dart';
 class ResourceListScreen extends StatefulWidget {
   const ResourceListScreen({
     super.key,
@@ -145,9 +146,9 @@ class _ResourceListScreenState extends State<ResourceListScreen> {
               },
             )
           else if (rows.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(32),
-              child: Center(child: Text('No records found.', style: TextStyle(color: Color(0xFF94A3B8)))),
+              child: Center(child: Text('No records found.', style: TextStyle(color: context.faint))),
             )
           else
             ...rows.map((raw) {
@@ -195,7 +196,7 @@ class _ResourceListScreenState extends State<ResourceListScreen> {
                                     width: 125,
                                     child: Text(
                                       entry.key.replaceAll('_', ' '),
-                                      style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+                                      style: TextStyle(color: context.muted, fontWeight: FontWeight.w600),
                                     ),
                                   ),
                                   Expanded(child: Text('${entry.value}')),

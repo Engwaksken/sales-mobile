@@ -6,7 +6,7 @@ import '../../core/format.dart';
 import '../../widgets/filter_bar.dart';
 import '../../widgets/staff_ui.dart';
 
-const _red = Color(0xFFB91C1C);
+import '../../core/app_theme.dart';
 
 /// The owner's audit trail: who created, changed or deleted what, with
 /// suspicious edits (deleted sales, stock counts raised by hand...) flagged.
@@ -95,7 +95,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Card(
-            color: flaggedCount > 0 ? const Color(0xFFFEF2F2) : null,
+            color: flaggedCount > 0 ? context.dangerSoft : null,
             child: InkWell(
               onTap: () => setState(() => flaggedOnly = !flaggedOnly),
               child: Padding(
@@ -105,20 +105,20 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.flag, color: flaggedCount > 0 ? _red : kFaint),
+                        Icon(Icons.flag, color: flaggedCount > 0 ? context.danger : context.faint),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             '$flaggedCount flagged change${flaggedCount == 1 ? '' : 's'} in the last 7 days',
-                            style: TextStyle(fontWeight: FontWeight.w800, color: flaggedCount > 0 ? _red : null),
+                            style: TextStyle(fontWeight: FontWeight.w800, color: flaggedCount > 0 ? context.danger : null),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Flags mark deleted or edited sales, changed payments and stock counts changed by hand. Check each one is genuine.',
-                      style: TextStyle(color: kMuted, fontSize: 12.5),
+                      style: TextStyle(color: context.muted, fontSize: 12.5),
                     ),
                     if (top.isNotEmpty) ...[
                       const SizedBox(height: 10),
@@ -171,7 +171,7 @@ class _LogCard extends StatelessWidget {
     final who = [row['user_name'], titleCase('${row['user_role'] ?? ''}')].where((s) => s != null && '$s'.isNotEmpty).join(' · ');
 
     return Card(
-      color: flagged ? const Color(0xFFFEF2F2) : null,
+      color: flagged ? context.dangerSoft : null,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => showModalBottomSheet<void>(
@@ -185,7 +185,7 @@ class _LogCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(iconFor('${row['action']}'), color: flagged ? _red : kMuted),
+              Icon(iconFor('${row['action']}'), color: flagged ? context.danger : context.muted),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -194,12 +194,12 @@ class _LogCard extends StatelessWidget {
                     Text('${row['description']}', style: const TextStyle(fontWeight: FontWeight.w700)),
                     if (flagged && row['flag_reason'] != null) ...[
                       const SizedBox(height: 3),
-                      Text('${row['flag_reason']}', style: const TextStyle(color: _red, fontWeight: FontWeight.w700, fontSize: 12.5)),
+                      Text('${row['flag_reason']}', style: TextStyle(color: context.danger, fontWeight: FontWeight.w700, fontSize: 12.5)),
                     ],
                     const SizedBox(height: 4),
                     Text(
                       '$who · ${formatDate(row['created_at'], withTime: true)} · ${titleCase('${row['source'] ?? ''}')}',
-                      style: const TextStyle(color: kFaint, fontSize: 12),
+                      style: TextStyle(color: context.faint, fontSize: 12),
                     ),
                   ],
                 ),
@@ -240,12 +240,12 @@ class _LogDetail extends StatelessWidget {
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(10)),
+                decoration: BoxDecoration(color: context.dangerSoft, borderRadius: BorderRadius.circular(10)),
                 child: Row(
                   children: [
-                    const Icon(Icons.flag, color: _red, size: 18),
+                    Icon(Icons.flag, color: context.danger, size: 18),
                     const SizedBox(width: 8),
-                    Expanded(child: Text('${row['flag_reason']}', style: const TextStyle(color: _red, fontWeight: FontWeight.w700))),
+                    Expanded(child: Text('${row['flag_reason']}', style: TextStyle(color: context.danger, fontWeight: FontWeight.w700))),
                   ],
                 ),
               ),
@@ -272,14 +272,14 @@ class _LogDetail extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(width: 120, child: Text(titleCase(e.key), style: const TextStyle(color: kMuted))),
+                        SizedBox(width: 120, child: Text(titleCase(e.key), style: TextStyle(color: context.muted))),
                         Expanded(
                           child: updated
                               ? Text.rich(
                                   TextSpan(children: [
-                                    TextSpan(text: _value(old), style: const TextStyle(color: _red, decoration: TextDecoration.lineThrough)),
+                                    TextSpan(text: _value(old), style: TextStyle(color: context.danger, decoration: TextDecoration.lineThrough)),
                                     const TextSpan(text: '  →  '),
-                                    TextSpan(text: _value(now), style: const TextStyle(color: Color(0xFF047857), fontWeight: FontWeight.w800)),
+                                    TextSpan(text: _value(now), style: TextStyle(color: context.success, fontWeight: FontWeight.w800)),
                                   ]),
                                   textAlign: TextAlign.right,
                                 )

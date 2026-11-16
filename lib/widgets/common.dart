@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_theme.dart';
 class StatCard extends StatelessWidget {
   const StatCard({
     super.key,
@@ -43,10 +44,10 @@ class StatCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   if (onTap != null)
-                    const Icon(
+                    Icon(
                       Icons.arrow_forward_ios,
                       size: 13,
-                      color: Color(0xFF94A3B8),
+                      color: context.faint,
                     ),
                 ],
               ),
@@ -56,7 +57,7 @@ class StatCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: const Color(0xFF64748B),
+                  color: context.muted,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -87,8 +88,8 @@ void showFlash(BuildContext context, String message, {bool error = false}) {
     SnackBar(
       content: Text(message),
       backgroundColor: error
-          ? const Color(0xFFB91C1C)
-          : const Color(0xFF047857),
+          ? context.danger
+          : context.success,
       duration: const Duration(seconds: 5),
       behavior: SnackBarBehavior.floating,
     ),

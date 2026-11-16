@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/api_client.dart';
 import '../core/customer_api.dart';
 
+import '../core/app_theme.dart';
 class CustomerChatScreen extends StatefulWidget {
   const CustomerChatScreen({super.key});
 
@@ -102,15 +103,15 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                             decoration: BoxDecoration(
                               color: mine
                                   ? Theme.of(context).colorScheme.primary
-                                  : const Color(0xFFF1F5F9),
+                                  : context.fieldFill,
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
                               '${row['message'] ?? ''}',
                               style: TextStyle(
                                 color: mine
-                                    ? Colors.white
-                                    : const Color(0xFF1E293B),
+                                    ? Theme.of(context).colorScheme.onPrimary
+                                    : context.ink,
                               ),
                             ),
                           ),
@@ -123,9 +124,9 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
             top: false,
             child: Container(
               padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(
-                  top: BorderSide(color: Color(0xFFE2E8F0)),
+                  top: BorderSide(color: context.hairline),
                 ),
               ),
               child: Row(
