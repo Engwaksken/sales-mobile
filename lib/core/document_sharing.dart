@@ -31,6 +31,10 @@ class SalesDocument {
     this.totals = const [],
     this.highlight,
     this.note,
+    this.signer,
+    this.signerRole,
+    this.signature,
+    this.signatureLabel = 'Sold by',
   });
 
   /// "Invoice", "Payment receipt".
@@ -47,6 +51,14 @@ class SalesDocument {
   /// A prominent label/amount box, e.g. ('Amount received', 'UGX 50,000').
   final (String, String)? highlight;
   final String? note;
+
+  /// The salesperson printed under the signature line; no block when null.
+  final String? signer;
+  final String? signerRole;
+
+  /// PNG/JPEG bytes of the signer's signature; a blank line is drawn when null.
+  final Uint8List? signature;
+  final String signatureLabel;
 
   String get fileName {
     final safe = '$title $number'.trim().replaceAll(RegExp(r'[^A-Za-z0-9._-]+'), '-');
@@ -95,6 +107,7 @@ Future<Uint8List> buildSalesDocumentPdf(
   final tint = PdfColor(_mix(accent.red), _mix(accent.green), _mix(accent.blue));
 
   final image = await _logoImage(logo);
+  final signatureImage = await _signatureImage(doc.signature);
   final details = doc.details.where((d) => (d.$2 ?? '').trim().isNotEmpty).toList();
   final printed = formatDate((generatedAt ?? DateTime.now()).toIso8601String(), withTime: true);
 
@@ -103,9 +116,23 @@ Future<Uint8List> buildSalesDocumentPdf(
   final pdf = pw.Document(title: '${doc.title} ${doc.number}', author: brandName, creator: brandName);
   pdf.addPage(
     pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.fromLTRB(40, 36, 40, 36),
-      theme: pw.ThemeData.withFont(base: pw.Font.helvetica(), bold: pw.Font.helveticaBold()),
+      pageTheme: pw.PageTheme(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.fromLTRB(40, 36, 40, 36),
+        theme: pw.ThemeData.withFont(base: pw.Font.helvetica(), bold: pw.Font.helveticaBold()),
+        // Faint logo watermark behind every page.
+        buildBackground: image == null
+            ? null
+            : (context) => pw.FullPage(
+                  ignoreMargins: true,
+                  child: pw.Center(
+                    child: pw.Opacity(
+                      opacity: 0.06,
+                      child: pw.SizedBox(width: 300, height: 300, child: pw.Image(image, fit: pw.BoxFit.contain)),
+                    ),
+                  ),
+                ),
+      ),
       header: (context) => context.pageNumber == 1
           ? pw.SizedBox()
           : pw.Padding(
@@ -235,6 +262,11 @@ Future<Uint8List> buildSalesDocumentPdf(
           ),
         ],
 
+        if (doc.signer != null && doc.signer!.trim().isNotEmpty) ...[
+          pw.SizedBox(height: 30),
+          _signatureBlock(doc, signatureImage, muted: muted),
+        ],
+
         pw.SizedBox(height: 32),
         if (doc.note != null && doc.note!.trim().isNotEmpty) ...[
           pw.Text(doc.note!.trim(), style: pw.TextStyle(fontSize: 10, color: muted)),
@@ -314,4 +346,50 @@ SalesDocument _latin1(SalesDocument d) => SalesDocument(
   totals: [for (final t in d.totals) (_clean(t.$1), _clean(t.$2))],
   highlight: d.highlight == null ? null : (_clean(d.highlight!.$1), _clean(d.highlight!.$2)),
   note: d.note == null ? null : _clean(d.note!),
+  signer: d.signer == null ? null : _clean(d.signer!),
+  signerRole: d.signerRole == null ? null : _clean(d.signerRole!),
+  signature: d.signature,
+  signatureLabel: _clean(d.signatureLabel),
 );
+
+Future<pw.ImageProvider?> _signatureImage(Uint8List? bytes) async {
+  if (bytes == null || !_isRaster(bytes)) return null;
+  try {
+    return pw.MemoryImage(bytes);
+  } catch (_) {
+    return null;
+  }
+}
+
+pw.Widget _signatureBlock(SalesDocument doc, pw.ImageProvider? signature, {required PdfColor muted}) {
+  return pw.Row(
+    children: [
+      pw.SizedBox(
+        width: 220,
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Container(
+              height: 56,
+              alignment: pw.Alignment.bottomLeft,
+              child: signature == null ? null : pw.Image(signature, height: 54, fit: pw.BoxFit.contain),
+            ),
+            pw.Container(height: 0.8, color: muted),
+            pw.SizedBox(height: 4),
+            pw.RichText(
+              text: pw.TextSpan(
+                children: [
+                  pw.TextSpan(text: doc.signer!.trim(), style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                  if ((doc.signerRole ?? '').trim().isNotEmpty)
+                    pw.TextSpan(text: '  -  ${doc.signerRole!.trim()}', style: pw.TextStyle(fontSize: 9, color: muted)),
+                ],
+              ),
+            ),
+            pw.Text(doc.signatureLabel, style: pw.TextStyle(fontSize: 8, color: muted)),
+          ],
+        ),
+      ),
+      pw.Spacer(),
+    ],
+  );
+}

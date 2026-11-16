@@ -5,6 +5,7 @@ import '../core/api_client.dart';
 import '../core/customer_api.dart';
 import '../core/document_sharing.dart';
 import '../core/format.dart';
+import '../widgets/signature_pad.dart';
 
 class CustomerOrderDetailScreen extends StatefulWidget {
   const CustomerOrderDetailScreen({super.key, required this.orderId});
@@ -59,6 +60,9 @@ class _CustomerOrderDetailScreenState extends State<CustomerOrderDetailScreen> {
               context,
               SalesDocument(
                 title: 'Invoice',
+                signer: order['sold_by']?.toString(),
+                signerRole: order['sold_by_role']?.toString(),
+                signature: bytesFromDataUri(order['sold_by_signature']),
                 number: '${order['order_number'] ?? order['order_id'] ?? ''}',
                 details: [
                   ('Billed to', order['customer_name']?.toString()),
@@ -239,6 +243,9 @@ class _CustomerOrderDetailScreenState extends State<CustomerOrderDetailScreen> {
                         context,
                         SalesDocument(
                           title: 'Payment receipt',
+                          signer: order['sold_by']?.toString(),
+                          signerRole: order['sold_by_role']?.toString(),
+                          signature: bytesFromDataUri(order['sold_by_signature']),
                           number: '${receipt['receipt_number'] ?? receipt['receipt_no'] ?? ''}',
                           details: [
                             ('Received from', order['customer_name']?.toString()),

@@ -6,6 +6,7 @@ import '../../core/format.dart';
 import '../../core/document_sharing.dart';
 import '../../core/staff_lookups.dart';
 import '../../widgets/filter_bar.dart';
+import '../../widgets/signature_pad.dart';
 import '../../widgets/staff_ui.dart';
 import 'pos_screen.dart';
 import 'tender_editor.dart';
@@ -191,6 +192,9 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                 context,
                 SalesDocument(
                   title: 'Invoice',
+                  signer: sale['sold_by']?.toString(),
+                  signerRole: sale['sold_by_role']?.toString(),
+                  signature: bytesFromDataUri(sale['sold_by_signature']),
                   number: '${sale['invoice_no'] ?? ''}',
                   details: [
                     ('Billed to', '${sale['customer_name'] ?? 'Walk-in'}'),
@@ -342,6 +346,9 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                     context,
                                     SalesDocument(
                                       title: 'Payment receipt',
+                                      signer: sale['sold_by']?.toString(),
+                                      signerRole: sale['sold_by_role']?.toString(),
+                                      signature: bytesFromDataUri(sale['sold_by_signature']),
                                       number: '${p['receipt_no'] ?? ''}',
                                       details: [
                                         ('Received from', '${sale['customer_name'] ?? 'Walk-in'}'),

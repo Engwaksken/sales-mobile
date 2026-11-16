@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import '../core/api_client.dart';
 import '../core/config.dart';
 import '../core/auth_store.dart';
 import '../core/format.dart';
+import '../widgets/signature_pad.dart';
 import '../widgets/staff_ui.dart';
 
 /// The signed-in user's own profile: photo, name, password, and for customers
@@ -161,6 +163,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showSuccess(context, 'Profile saved.');
   }
 
+  bool signatureBusy = false;
+
+  Future<void> saveSignature(Object body) async {
+    final result = await runApi(
+      context,
+      (api) => api.post('/profile/signature', data: body),
+      busy: (b) => setState(() => signatureBusy = b),
+    );
+    if (result == null || !mounted) return;
+    setState(() => profile['signature'] = ((result.data as Map)['data'] as Map)['signature']);
+    showSuccess(context, 'Signature saved. It will appear on your invoices and receipts.');
+  }
+
+  Future<void> drawSignature() async {
+    final bytes = await Navigator.push<Uint8List>(
+      context,
+      MaterialPageRoute(fullscreenDialog: true, builder: (_) => const SignaturePadScreen()),
+    );
+    if (bytes != null) await saveSignature({'signature_data': pngDataUri(bytes)});
+  }
+
+  Future<void> uploadSignature() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1200, imageQuality: 90);
+    if (picked == null) return;
+    await saveSignature(FormData.fromMap({
+      'signature': await MultipartFile.fromFile(picked.path, filename: picked.path.split(Platform.pathSeparator).last),
+    }));
+  }
+
+  Future<void> removeSignature() async {
+    final result = await runApi(
+      context,
+      (api) => api.delete('/profile/signature'),
+      busy: (b) => setState(() => signatureBusy = b),
+    );
+    if (result == null || !mounted) return;
+    setState(() => profile['signature'] = null);
+    showSuccess(context, 'Signature removed.');
+  }
+
+  Widget signatureCard() {
+    final bytes = bytesFromDataUri(profile['signature']);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.draw_outlined),
+                const SizedBox(width: 12),
+                const Expanded(child: Text('My signature', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800))),
+                if (signatureBusy) const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Added automatically to invoices and receipts of the sales you make.',
+              style: TextStyle(color: kMuted, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              height: 96,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: bytes == null
+                  ? const Text('No signature yet', style: TextStyle(color: kFaint))
+                  : Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Image.memory(bytes, fit: BoxFit.contain, semanticLabel: 'Your signature'),
+                    ),
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              alignment: WrapAlignment.end,
+              children: [
+                if (bytes != null)
+                  TextButton.icon(
+                    onPressed: signatureBusy ? null : removeSignature,
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Remove'),
+                    style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                  ),
+                TextButton.icon(
+                  onPressed: signatureBusy ? null : uploadSignature,
+                  icon: const Icon(Icons.image_outlined),
+                  label: const Text('Upload'),
+                ),
+                TextButton.icon(
+                  onPressed: signatureBusy ? null : drawSignature,
+                  icon: const Icon(Icons.gesture),
+                  label: Text(bytes == null ? 'Draw' : 'Redraw'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> changePassword() async {
     final changed = await showModalBottomSheet<bool>(
       context: context,
@@ -309,6 +417,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     : const Icon(Icons.save_outlined),
                 label: const Text('Save profile'),
               ),
+              if (!isCustomer) ...[
+                const SizedBox(height: 18),
+                signatureCard(),
+              ],
               const SizedBox(height: 18),
               Card(
                 child: Column(
