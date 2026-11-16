@@ -480,8 +480,19 @@ class _RecordPaymentSheetState extends State<RecordPaymentSheet> {
 }
 
 /// Every receipt issued against sales.
+const paymentStatuses = {
+  'successful': 'Successful',
+  'pending': 'Pending',
+  'failed': 'Failed',
+};
+
 class PaymentsScreen extends StatefulWidget {
-  const PaymentsScreen({super.key});
+  const PaymentsScreen({super.key, this.initialStatus, this.from, this.to});
+
+  /// Starting filters, e.g. from the "Collected This Month" dashboard card.
+  final String? initialStatus;
+  final String? from;
+  final String? to;
 
   @override
   State<PaymentsScreen> createState() => _PaymentsScreenState();
@@ -489,7 +500,14 @@ class PaymentsScreen extends StatefulWidget {
 
 class _PaymentsScreenState extends State<PaymentsScreen> {
   final list = PagedListController();
-  Map<String, Object?> values = {};
+
+  /// The range a dashboard card opened this list with.
+  late final DateTimeRange? startRange = _SalesScreenState._startingRange(widget.from, widget.to);
+
+  late Map<String, Object?> values = {
+    'status': paymentStatuses.containsKey(widget.initialStatus) ? widget.initialStatus : null,
+    'date': startRange,
+  };
 
   @override
   void initState() {
@@ -503,6 +521,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     final branchId = values['branch'] as String?;
     final paymentMethod = values['method'] as String?;
     final productId = values['product'] as String?;
+    final range = values['date'] as DateTimeRange?;
     return PagedList(
       path: '/staff/payments',
       controller: list,
@@ -510,6 +529,10 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
         if (lookups.isAdmin && branchId != null) 'branch_id': int.parse(branchId),
         'payment_method': ?paymentMethod,
         if (productId != null) 'product_id': int.parse(productId),
+        'status': values['status'],
+        // Until the dates are changed, send the card's own from/to unchanged.
+        'from': range == null ? null : (range == startRange ? widget.from : isoDate(range.start)),
+        'to': range == null ? null : (range == startRange ? widget.to : isoDate(range.end)),
       },
       filters: [
         ChoiceFilter(
@@ -534,6 +557,12 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           allLabel: 'All products',
           options: [for (final p in lookups.products) FilterOption('${p.id}', p.name)],
           searchable: true,
+        ),
+        const DateRangeFilter(id: 'date', label: 'Payment date'),
+        ChoiceFilter(
+          id: 'status',
+          label: 'Status',
+          options: [for (final e in paymentStatuses.entries) FilterOption(e.key, e.value)],
         ),
       ],
       filterValues: values,

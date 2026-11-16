@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/api_client.dart';
 import '../core/config.dart';
 import '../widgets/filter_bar.dart';
+import '../widgets/staff_ui.dart';
 
 class CustomerProductsScreen extends StatefulWidget {
   const CustomerProductsScreen({super.key});
@@ -14,6 +15,7 @@ class CustomerProductsScreen extends StatefulWidget {
 
 class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
   bool loading = true;
+  String? error;
   List<dynamic> rows = [];
   final search = TextEditingController();
 
@@ -32,19 +34,38 @@ class _CustomerProductsScreenState extends State<CustomerProductsScreen> {
   }
 
   Future<void> load() async {
-    final response = await context.read<ApiClient>().get('/customer/products');
-
-    if (!mounted) return;
-
-    setState(() {
-      rows = List<dynamic>.from(response.data['data'] ?? []);
-      loading = false;
-    });
+    final api = context.read<ApiClient>();
+    if (rows.isEmpty) {
+      setState(() {
+        loading = true;
+        error = null;
+      });
+    }
+    try {
+      final response = await api.get('/customer/products');
+      if (!mounted) return;
+      setState(() {
+        rows = List<dynamic>.from(response.data['data'] ?? []);
+        error = null;
+      });
+    } catch (e) {
+      // Keep showing products already loaded; only show the error page when there are none.
+      if (!mounted) return;
+      if (rows.isEmpty) {
+        setState(() => error = api.messageFromError(e));
+      } else {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: Text(api.messageFromError(e))));
+      }
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (loading) return const Center(child: CircularProgressIndicator());
+    if (loading || error != null) {
+      return AsyncBody(loading: loading, error: error, onRetry: load, builder: (_) => const SizedBox.shrink());
+    }
 
     final filtered = rows.where((raw) {
       final row = Map<String, dynamic>.from(raw as Map);

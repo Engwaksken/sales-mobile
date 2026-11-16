@@ -20,7 +20,7 @@ Future<void> openStatTarget(BuildContext context, String module, Map<String, dyn
     case 'sales':
       body = SalesScreen(initialStatus: text('status'), from: text('from'), to: text('to'));
     case 'payments':
-      body = const PaymentsScreen();
+      body = PaymentsScreen(initialStatus: text('status'), from: text('from'), to: text('to'));
     case 'orders':
       body = OrdersScreen(initialStatus: text('status'));
     case 'stock':

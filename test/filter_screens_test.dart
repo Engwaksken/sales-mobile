@@ -129,6 +129,22 @@ void main() {
     expect(server.lastQuery('/staff/payments'), {'page': 1});
   });
 
+  testWidgets("payments: the 'Collected This Month' card opens this month's successful payments", (tester) async {
+    final server = await pumpStaff(
+      tester,
+      framed('Payments', const PaymentsScreen(initialStatus: 'successful', from: '2026-11-01', to: '2026-11-16')),
+      server: StaffServer(listRows),
+    );
+
+    expect(server.lastQuery('/staff/payments'), {'status': 'successful', 'from': '2026-11-01', 'to': '2026-11-16', 'page': 1});
+    expect(badge(tester), '2');
+    expect(find.byKey(const ValueKey('active-filter-date')), findsOneWidget);
+    expect(find.text('Status: Successful'), findsOneWidget);
+
+    await tapVisible(tester, find.text('Clear all'));
+    expect(server.lastQuery('/staff/payments'), {'page': 1});
+  });
+
   testWidgets('reports: this month by default, presets and filters change the request', (tester) async {
     final server = await pumpStaff(tester, const ReportViewScreen(type: 'sales', label: 'Sales report'), server: StaffServer(listRows));
     const path = '/staff/reports/sales';
