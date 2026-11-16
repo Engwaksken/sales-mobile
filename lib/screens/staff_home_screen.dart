@@ -12,8 +12,8 @@ import 'notification_settings_screen.dart';
 import 'profile_screen.dart';
 import 'dashboard_screen.dart';
 import 'expenses_screen.dart';
-import 'resource_list_screen.dart';
 import 'staff/activity_screens.dart';
+import 'staff/admin_screens.dart';
 import 'staff/catalog_screens.dart';
 import 'staff/chat_screens.dart';
 import 'staff/order_screens.dart';
@@ -47,14 +47,6 @@ class StaffModule {
   final bool viewOnly;
   final WidgetBuilder builder;
 }
-
-Widget _viewOnly(String resource, String title, IconData icon) =>
-    ResourceListScreen(
-      resource: resource,
-      title: title,
-      icon: icon,
-      showHeader: false,
-    );
 
 /// Mirrors the website sidebar (groups and permission keys).
 final List<StaffModule> staffModules = [
@@ -90,11 +82,10 @@ final List<StaffModule> staffModules = [
     label: 'Mobile Money',
     group: 'Sales',
     permission: 'manage_sales',
-    viewOnly: true,
     icon: Icons.phone_android_outlined,
     selectedIcon: Icons.phone_android,
     builder: (_) =>
-        _viewOnly('mobile-money', 'Mobile Money', Icons.phone_android),
+        const AdminListScreen(resource: 'mobile-money', label: 'Mobile Money Collections'),
   ),
   StaffModule(
     id: 'chats',
@@ -190,22 +181,20 @@ final List<StaffModule> staffModules = [
     label: 'Chart of Accounts',
     group: 'Reports & Accounting',
     permission: 'manage_statements',
-    viewOnly: true,
     icon: Icons.account_tree_outlined,
     selectedIcon: Icons.account_tree,
     builder: (_) =>
-        _viewOnly('chart-of-accounts', 'Chart of Accounts', Icons.account_tree),
+        const AdminListScreen(resource: 'chart-of-accounts', label: 'Chart of Accounts'),
   ),
   StaffModule(
     id: 'journals',
     label: 'Journals',
     group: 'Reports & Accounting',
     permission: 'manage_statements',
-    viewOnly: true,
     icon: Icons.menu_book_outlined,
     selectedIcon: Icons.menu_book,
     builder: (_) =>
-        _viewOnly('accounting-journals', 'Journals', Icons.menu_book),
+        const AdminListScreen(resource: 'journals', label: 'Journals'),
   ),
   StaffModule(
     id: 'activity',
@@ -225,37 +214,170 @@ final List<StaffModule> staffModules = [
     icon: Icons.verified_outlined,
     selectedIcon: Icons.verified,
     builder: (_) =>
-        _viewOnly('efris-invoices', 'EFRIS Invoices', Icons.verified),
+        const AdminListScreen(resource: 'efris-invoices', label: 'EFRIS Invoices', readOnly: true),
   ),
   StaffModule(
     id: 'users',
     label: 'Users',
     group: 'Admin',
     permission: 'manage_users',
-    viewOnly: true,
     icon: Icons.manage_accounts_outlined,
     selectedIcon: Icons.manage_accounts,
-    builder: (_) => _viewOnly('users', 'Users', Icons.manage_accounts),
+    builder: (_) => const AdminListScreen(resource: 'users', label: 'Users'),
   ),
   StaffModule(
     id: 'branches',
     label: 'Branches',
     group: 'Admin',
     permission: 'manage_branches',
-    viewOnly: true,
     icon: Icons.store_outlined,
     selectedIcon: Icons.store,
-    builder: (_) => _viewOnly('branches', 'Branches', Icons.store),
+    builder: (_) => const AdminListScreen(resource: 'branches', label: 'Branches'),
   ),
   StaffModule(
     id: 'delivery-zones',
     label: 'Delivery Zones',
     group: 'Admin',
     permission: 'manage_settings',
-    viewOnly: true,
     icon: Icons.map_outlined,
     selectedIcon: Icons.map,
-    builder: (_) => _viewOnly('delivery-zones', 'Delivery Zones', Icons.map),
+    builder: (_) => const AdminListScreen(resource: 'delivery-zones', label: 'Delivery Zones'),
+  ),
+  StaffModule(
+    id: 'order-payment-receipts',
+    label: 'Order Payment Receipts',
+    group: 'Sales',
+    permission: 'manage_orders',
+    icon: Icons.receipt_outlined,
+    selectedIcon: Icons.receipt,
+    builder: (_) => const AdminListScreen(resource: 'order-payment-receipts', label: 'Order Payment Receipts'),
+  ),
+  StaffModule(
+    id: 'order-logs',
+    label: 'Order Logs',
+    group: 'Sales',
+    permission: 'manage_orders',
+    icon: Icons.manage_history_outlined,
+    selectedIcon: Icons.manage_history,
+    builder: (_) => const AdminListScreen(resource: 'order-logs', label: 'Order Logs'),
+  ),
+  StaffModule(
+    id: 'journal-entries',
+    label: 'Journal Entries',
+    group: 'Reports & Accounting',
+    permission: 'manage_statements',
+    icon: Icons.receipt_long_outlined,
+    selectedIcon: Icons.receipt_long,
+    builder: (_) => const AdminListScreen(resource: 'journal-entries', label: 'Journal Entries'),
+  ),
+  StaffModule(
+    id: 'payment-gateways',
+    label: 'Payment Gateways',
+    group: 'Settings',
+    permission: 'manage_settings',
+    icon: Icons.credit_card_outlined,
+    selectedIcon: Icons.credit_card,
+    builder: (_) => const AdminListScreen(resource: 'payment-gateways', label: 'Payment Gateways'),
+  ),
+  StaffModule(
+    id: 'payment-settings',
+    label: 'Payment Settings',
+    group: 'Settings',
+    permission: 'manage_settings',
+    icon: Icons.tune_outlined,
+    selectedIcon: Icons.tune,
+    builder: (_) => const AdminListScreen(resource: 'payment-settings', label: 'Payment Settings'),
+  ),
+  StaffModule(
+    id: 'email-settings',
+    label: 'Email Settings',
+    group: 'Settings',
+    permission: 'manage_settings',
+    icon: Icons.mail_outlined,
+    selectedIcon: Icons.mail,
+    builder: (_) => const AdminListScreen(resource: 'email-settings', label: 'Email Settings'),
+  ),
+  StaffModule(
+    id: 'slides',
+    label: 'Shop Slides',
+    group: 'Settings',
+    permission: 'manage_settings',
+    icon: Icons.view_carousel_outlined,
+    selectedIcon: Icons.view_carousel,
+    builder: (_) => const AdminListScreen(resource: 'slides', label: 'Shop Slides'),
+  ),
+  StaffModule(
+    id: 'nav-pages',
+    label: 'Navigation Pages',
+    group: 'Settings',
+    permission: 'manage_settings',
+    icon: Icons.menu_open_outlined,
+    selectedIcon: Icons.menu_open,
+    builder: (_) => const AdminListScreen(resource: 'nav-pages', label: 'Navigation Pages'),
+  ),
+  StaffModule(
+    id: 'settings',
+    label: 'System Settings',
+    group: 'Settings',
+    permission: 'manage_settings',
+    icon: Icons.settings_outlined,
+    selectedIcon: Icons.settings,
+    builder: (_) => const AdminSettingsScreen(),
+  ),
+  StaffModule(
+    id: 'efris-config',
+    label: 'EFRIS Config',
+    group: 'Tax (EFRIS)',
+    permission: 'manage_settings',
+    icon: Icons.verified_user_outlined,
+    selectedIcon: Icons.verified_user,
+    builder: (_) => const AdminListScreen(resource: 'efris-config', label: 'EFRIS Config'),
+  ),
+  StaffModule(
+    id: 'efris-devices',
+    label: 'EFRIS Devices',
+    group: 'Tax (EFRIS)',
+    permission: 'manage_settings',
+    icon: Icons.devices_outlined,
+    selectedIcon: Icons.devices,
+    builder: (_) => const AdminListScreen(resource: 'efris-devices', label: 'EFRIS Devices'),
+  ),
+  StaffModule(
+    id: 'efris-api-logs',
+    label: 'EFRIS API Logs',
+    group: 'Tax (EFRIS)',
+    permission: 'manage_settings',
+    viewOnly: true,
+    icon: Icons.list_alt_outlined,
+    selectedIcon: Icons.list_alt,
+    builder: (_) => const AdminListScreen(resource: 'efris-api-logs', label: 'EFRIS API Logs', readOnly: true),
+  ),
+  StaffModule(
+    id: 'role-permissions',
+    label: 'Role Permissions',
+    group: 'Admin',
+    permission: 'manage_users',
+    icon: Icons.admin_panel_settings_outlined,
+    selectedIcon: Icons.admin_panel_settings,
+    builder: (_) => const RolePermissionsScreen(),
+  ),
+  StaffModule(
+    id: 'permissions',
+    label: 'Permissions',
+    group: 'Admin',
+    permission: 'manage_users',
+    icon: Icons.key_outlined,
+    selectedIcon: Icons.key,
+    builder: (_) => const AdminListScreen(resource: 'permissions', label: 'Permissions'),
+  ),
+  StaffModule(
+    id: 'notifications',
+    label: 'Send Notifications',
+    group: 'Admin',
+    permission: 'manage_notifications',
+    icon: Icons.campaign_outlined,
+    selectedIcon: Icons.campaign,
+    builder: (_) => const AdminListScreen(resource: 'notifications', label: 'Send Notifications'),
   ),
 ];
 
