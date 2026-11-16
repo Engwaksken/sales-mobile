@@ -180,26 +180,39 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
             IconButton(
               tooltip: 'Share invoice',
               icon: const Icon(Icons.share_outlined),
-              onPressed: () => shareDocument(
-                'Invoice ${sale['invoice_no'] ?? ''}',
-                [
-                  'INVOICE ${sale['invoice_no'] ?? ''}',
-                  'Customer: ${sale['customer_name'] ?? 'Walk-in'}',
-                  'Date: ${formatDate(sale['sale_date'])}',
-                  '',
-                  for (final raw in items)
-                    () {
-                      final item = Map<String, dynamic>.from(raw as Map);
-                      return '${item['name']} — ${formatNumber(item['quantity'])} × ${money(item['price'])} = ${money(item['total'])}';
-                    }(),
-                  '',
-                  if (toDouble(sale['discount']) > 0)
-                    'Discount: -${money(sale['discount'])}',
-                  if (toDouble(sale['vat']) > 0) 'VAT: ${money(sale['vat'])}',
-                  'Total: ${money(sale['total_amount'])}',
-                  'Paid: ${money(sale['paid_amount'])}',
-                  'Balance: ${money(sale['balance_amount'])}',
-                ],
+              onPressed: () => shareSalesDocument(
+                context,
+                SalesDocument(
+                  title: 'Invoice',
+                  number: '${sale['invoice_no'] ?? ''}',
+                  details: [
+                    ('Billed to', '${sale['customer_name'] ?? 'Walk-in'}'),
+                    ('Phone', sale['customer_phone']?.toString()),
+                    ('Date', formatDate(sale['sale_date'])),
+                    ('Status', saleStatuses[sale['payment_status']] ?? sale['payment_status']?.toString()),
+                    ('Branch', sale['branch_name']?.toString()),
+                    ('Served by', sale['sold_by']?.toString()),
+                  ],
+                  lines: [
+                    for (final raw in items)
+                      () {
+                        final item = Map<String, dynamic>.from(raw as Map);
+                        return DocumentLine(
+                          name: '${item['name']}',
+                          quantity: item['quantity'],
+                          price: item['price'],
+                          total: item['total'],
+                        );
+                      }(),
+                  ],
+                  totals: [
+                    if (toDouble(sale['discount']) > 0) ('Discount', '- ${money(sale['discount'])}'),
+                    if (toDouble(sale['vat']) > 0) ('VAT', money(sale['vat'])),
+                    ('Total', money(sale['total_amount'])),
+                    ('Paid', money(sale['paid_amount'])),
+                    ('Balance due', money(sale['balance_amount'])),
+                  ],
+                ),
               ),
             ),
         ],
@@ -318,16 +331,24 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                                 IconButton(
                                   tooltip: 'Share receipt',
                                   icon: const Icon(Icons.share_outlined),
-                                  onPressed: () => shareDocument(
-                                    'Payment receipt ${p['receipt_no'] ?? ''}',
-                                    [
-                                      'PAYMENT RECEIPT ${p['receipt_no'] ?? ''}',
-                                      'Invoice: ${sale['invoice_no'] ?? ''}',
-                                      'Customer: ${sale['customer_name'] ?? 'Walk-in'}',
-                                      'Amount: ${money(p['amount'])}',
-                                      'Method: ${p['method'] ?? ''}',
-                                      'Date: ${formatDate(p['created_at'], withTime: true)}',
-                                    ],
+                                  onPressed: () => shareSalesDocument(
+                                    context,
+                                    SalesDocument(
+                                      title: 'Payment receipt',
+                                      number: '${p['receipt_no'] ?? ''}',
+                                      details: [
+                                        ('Received from', '${sale['customer_name'] ?? 'Walk-in'}'),
+                                        ('Invoice', '${sale['invoice_no'] ?? ''}'),
+                                        ('Date', formatDate(p['created_at'], withTime: true)),
+                                        ('Method', '${p['method'] ?? ''}'),
+                                        ('Branch', sale['branch_name']?.toString()),
+                                      ],
+                                      highlight: ('Amount received', money(p['amount'])),
+                                      totals: [
+                                        ('Invoice total', money(sale['total_amount'])),
+                                        ('Balance due', money(sale['balance_amount'])),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],

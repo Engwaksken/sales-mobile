@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/api_client.dart';
 import '../core/customer_api.dart';
 import '../core/document_sharing.dart';
+import '../core/format.dart';
 
 class CustomerOrderDetailScreen extends StatefulWidget {
   const CustomerOrderDetailScreen({super.key, required this.orderId});
@@ -54,24 +55,37 @@ class _CustomerOrderDetailScreenState extends State<CustomerOrderDetailScreen> {
           IconButton(
             tooltip: 'Share invoice',
             icon: const Icon(Icons.share_outlined),
-            onPressed: () => shareDocument(
-              'Invoice ${order['order_number'] ?? order['order_id'] ?? ''}',
-              [
-                'INVOICE ${order['order_number'] ?? order['order_id'] ?? ''}',
-                'Customer: ${order['customer_name'] ?? ''}',
-                'Status: ${order['status_label'] ?? order['status'] ?? ''}',
-                '',
-                for (final raw in items)
-                  () {
-                    final item = Map<String, dynamic>.from(raw as Map);
-                    return '${item['product_name'] ?? 'Product'} — Qty ${item['quantity'] ?? 0} — UGX ${item['subtotal'] ?? item['price'] ?? 0}';
-                  }(),
-                '',
-                'Total: UGX ${order['total_amount'] ?? 0}',
-                'Paid: UGX ${order['amount_paid'] ?? 0}',
-                'Balance: UGX ${order['balance_amount'] ?? 0}',
-                'Delivery address: ${order['address'] ?? order['delivery_location'] ?? ''}',
-              ],
+            onPressed: () => shareSalesDocument(
+              context,
+              SalesDocument(
+                title: 'Invoice',
+                number: '${order['order_number'] ?? order['order_id'] ?? ''}',
+                details: [
+                  ('Billed to', order['customer_name']?.toString()),
+                  ('Date', formatDate(order['created_at'] ?? order['order_date'])),
+                  ('Status', '${order['status_label'] ?? order['status'] ?? ''}'),
+                  ('Payment', order['payment_status']?.toString()),
+                  ('Payment method', order['payment_method']?.toString()),
+                  ('Deliver to', '${order['address'] ?? order['delivery_location'] ?? ''}'),
+                ],
+                lines: [
+                  for (final raw in items)
+                    () {
+                      final item = Map<String, dynamic>.from(raw as Map);
+                      return DocumentLine(
+                        name: '${item['product_name'] ?? 'Product'}',
+                        quantity: item['quantity'] ?? 0,
+                        price: item['price'],
+                        total: item['subtotal'] ?? item['price'] ?? 0,
+                      );
+                    }(),
+                ],
+                totals: [
+                  ('Total', money(order['total_amount'])),
+                  ('Paid', money(order['amount_paid'])),
+                  ('Balance due', money(order['balance_amount'])),
+                ],
+              ),
             ),
           ),
         ],
@@ -221,14 +235,23 @@ class _CustomerOrderDetailScreenState extends State<CustomerOrderDetailScreen> {
                     trailing: IconButton(
                       tooltip: 'Share receipt',
                       icon: const Icon(Icons.share_outlined),
-                      onPressed: () => shareDocument(
-                        'Payment receipt ${receipt['receipt_number'] ?? receipt['receipt_no'] ?? ''}',
-                        [
-                          'PAYMENT RECEIPT ${receipt['receipt_number'] ?? receipt['receipt_no'] ?? ''}',
-                          'Invoice: ${order['order_number'] ?? order['order_id'] ?? ''}',
-                          'Amount: UGX ${receipt['amount_paid'] ?? receipt['amount'] ?? 0}',
-                          'Method: ${receipt['payment_method'] ?? receipt['method'] ?? ''}',
-                        ],
+                      onPressed: () => shareSalesDocument(
+                        context,
+                        SalesDocument(
+                          title: 'Payment receipt',
+                          number: '${receipt['receipt_number'] ?? receipt['receipt_no'] ?? ''}',
+                          details: [
+                            ('Received from', order['customer_name']?.toString()),
+                            ('Invoice', '${order['order_number'] ?? order['order_id'] ?? ''}'),
+                            ('Date', formatDate(receipt['created_at'] ?? receipt['payment_date'], withTime: true)),
+                            ('Method', '${receipt['payment_method'] ?? receipt['method'] ?? ''}'),
+                          ],
+                          highlight: ('Amount received', money(receipt['amount_paid'] ?? receipt['amount'])),
+                          totals: [
+                            ('Invoice total', money(order['total_amount'])),
+                            ('Balance due', money(order['balance_amount'])),
+                          ],
+                        ),
                       ),
                     ),
                   ),

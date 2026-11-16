@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/api_client.dart';
 import '../core/customer_api.dart';
 import '../core/document_sharing.dart';
+import '../core/format.dart';
 
 class CustomerPaymentsScreen extends StatefulWidget {
   const CustomerPaymentsScreen({super.key});
@@ -81,14 +82,20 @@ class _CustomerPaymentsScreenState extends State<CustomerPaymentsScreen> {
                                 IconButton(
                                   tooltip: 'Share receipt',
                                   icon: const Icon(Icons.share_outlined),
-                                  onPressed: () => shareDocument('Payment receipt', [
-                                    'PAYMENT RECEIPT',
-                                    'Receipt: ${row['receipt_no'] ?? row['receipt_number'] ?? 'Payment'}',
-                                    'Invoice: ${row['invoice_no'] ?? row['order_number'] ?? ''}',
-                                    'Amount: UGX ${row['amount'] ?? row['amount_paid'] ?? 0}',
-                                    'Method: ${row['method'] ?? row['payment_method'] ?? ''}',
-                                    'Date: ${row['created_at'] ?? row['payment_date'] ?? ''}',
-                                  ]),
+                                  onPressed: () => shareSalesDocument(
+                                    context,
+                                    SalesDocument(
+                                      title: 'Payment receipt',
+                                      number: '${row['receipt_no'] ?? row['receipt_number'] ?? ''}',
+                                      details: [
+                                        ('Received from', row['customer_name']?.toString()),
+                                        ('Invoice', '${row['invoice_no'] ?? row['order_number'] ?? ''}'),
+                                        ('Date', formatDate(row['created_at'] ?? row['payment_date'], withTime: true)),
+                                        ('Method', '${row['method'] ?? row['payment_method'] ?? ''}'),
+                                      ],
+                                      highlight: ('Amount received', money(row['amount'] ?? row['amount_paid'])),
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
