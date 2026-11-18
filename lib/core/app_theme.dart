@@ -12,20 +12,26 @@ ThemeData buildAppTheme(Color brand, Brightness brightness) {
   final primary = dark && brand.computeLuminance() < .18 ? Color.lerp(brand, Colors.white, .45)! : brand;
   final onPrimary = _readableOn(primary);
 
+  // Surface ladder. The page (surface / scaffold) is a tinted neutral so cards,
+  // bars and sheets (surfaceContainerLowest) clearly sit on top of it:
+  //   light: page #F1F4F9  ->  cards #FFFFFF
+  //   dark:  page #0A0F1A  ->  cards #141C2B
+  // The higher containers are filled panels (chips, thumbnails, search
+  // fields) that must still read on both the page and a card.
   final scheme = ColorScheme.fromSeed(seedColor: brand, brightness: brightness).copyWith(
     primary: primary,
     onPrimary: onPrimary,
     secondary: dark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-    surface: dark ? const Color(0xFF0B1220) : const Color(0xFFF8FAFC),
+    surface: dark ? const Color(0xFF0A0F1A) : const Color(0xFFF1F4F9),
     onSurface: dark ? const Color(0xFFE2E8F0) : const Color(0xFF0F172A),
     onSurfaceVariant: dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
     outline: dark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
-    outlineVariant: dark ? const Color(0xFF243044) : const Color(0xFFE2E8F0),
-    surfaceContainerLowest: dark ? const Color(0xFF111A2B) : Colors.white,
-    surfaceContainerLow: dark ? const Color(0xFF142035) : const Color(0xFFF8FAFC),
-    surfaceContainer: dark ? const Color(0xFF17233A) : const Color(0xFFF1F5F9),
-    surfaceContainerHigh: dark ? const Color(0xFF1B2840) : const Color(0xFFF1F5F9),
-    surfaceContainerHighest: dark ? const Color(0xFF1E2B44) : const Color(0xFFF1F5F9),
+    outlineVariant: dark ? const Color(0xFF263247) : const Color(0xFFE1E7EF),
+    surfaceContainerLowest: dark ? const Color(0xFF141C2B) : Colors.white,
+    surfaceContainerLow: dark ? const Color(0xFF182133) : const Color(0xFFF7F9FC),
+    surfaceContainer: dark ? const Color(0xFF1B2538) : const Color(0xFFEEF2F7),
+    surfaceContainerHigh: dark ? const Color(0xFF1F2A3F) : const Color(0xFFEAEEF4),
+    surfaceContainerHighest: dark ? const Color(0xFF233047) : const Color(0xFFE6EBF2),
     error: dark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
     onError: dark ? const Color(0xFF450A0A) : Colors.white,
   );
@@ -34,12 +40,20 @@ ThemeData buildAppTheme(Color brand, Brightness brightness) {
   final body = dark ? const Color(0xFFCBD5E1) : const Color(0xFF334155);
   final bodyMedium = dark ? const Color(0xFFB6C2D2) : const Color(0xFF475569);
   final card = scheme.surfaceContainerLowest;
+  // Fields stay distinct from the card they sit on: white with a firmer
+  // border in light mode, a slightly lifted fill in dark mode.
+  final fieldFill = dark ? scheme.surfaceContainerLow : card;
+  final fieldBorder = dark ? const Color(0xFF2E3B53) : const Color(0xFFD5DCE6);
+  // Soft drop shadow for raised surfaces; dark mode relies on fill and border.
+  final shadow = dark ? const Color(0x66000000) : const Color(0x140F172A);
 
   return ThemeData(
     useMaterial3: true,
     brightness: brightness,
     colorScheme: scheme,
     scaffoldBackgroundColor: scheme.surface,
+    canvasColor: scheme.surface,
+    shadowColor: shadow,
     visualDensity: VisualDensity.standard,
     textTheme: TextTheme(
       headlineLarge: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.8, color: ink),
@@ -54,17 +68,19 @@ ThemeData buildAppTheme(Color brand, Brightness brightness) {
       foregroundColor: ink,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
+      scrolledUnderElevation: 0,
       centerTitle: false,
       titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: ink),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: card,
+      fillColor: fieldFill,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       hintStyle: TextStyle(color: dark ? const Color(0xFF64748B) : const Color(0xFF94A3B8), fontSize: 14),
       labelStyle: TextStyle(color: bodyMedium, fontWeight: FontWeight.w500),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: scheme.outlineVariant)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: scheme.outlineVariant)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: fieldBorder)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: fieldBorder)),
+      disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: scheme.outlineVariant)),
       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: primary, width: 1.6)),
       errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: scheme.error)),
       focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: scheme.error, width: 1.6)),
@@ -87,17 +103,34 @@ ThemeData buildAppTheme(Color brand, Brightness brightness) {
     ),
     cardTheme: CardThemeData(
       color: card,
-      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: shadow,
+      elevation: dark ? 0 : 1,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
-        side: BorderSide(color: dark ? const Color(0xFF223047) : const Color(0xFFE8EDF3)),
+        side: BorderSide(color: scheme.outlineVariant),
       ),
     ),
-    dividerTheme: DividerThemeData(color: scheme.outlineVariant),
-    bottomSheetTheme: BottomSheetThemeData(backgroundColor: card, surfaceTintColor: Colors.transparent),
+    listTileTheme: ListTileThemeData(iconColor: scheme.onSurfaceVariant),
+    dividerTheme: DividerThemeData(color: scheme.outlineVariant, thickness: 1),
+    tabBarTheme: TabBarThemeData(dividerColor: scheme.outlineVariant, unselectedLabelColor: scheme.onSurfaceVariant),
+    popupMenuTheme: PopupMenuThemeData(color: card, surfaceTintColor: Colors.transparent, shadowColor: shadow),
+    menuTheme: MenuThemeData(
+      style: MenuStyle(
+        backgroundColor: WidgetStatePropertyAll(card),
+        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+      ),
+    ),
+    drawerTheme: DrawerThemeData(backgroundColor: card, surfaceTintColor: Colors.transparent),
+    bottomSheetTheme: BottomSheetThemeData(backgroundColor: card, modalBackgroundColor: card, surfaceTintColor: Colors.transparent),
     dialogTheme: DialogThemeData(backgroundColor: card, surfaceTintColor: Colors.transparent),
-    navigationBarTheme: NavigationBarThemeData(backgroundColor: card, surfaceTintColor: Colors.transparent),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: card,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: shadow,
+      elevation: 3,
+    ),
     snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
   );
 }

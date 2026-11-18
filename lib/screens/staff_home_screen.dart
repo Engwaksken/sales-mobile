@@ -307,15 +307,6 @@ final List<StaffModule> staffModules = [
     builder: (_) => const AdminListScreen(resource: 'slides', label: 'Shop Slides'),
   ),
   StaffModule(
-    id: 'nav-pages',
-    label: 'Navigation Pages',
-    group: 'Settings',
-    permission: 'manage_settings',
-    icon: Icons.menu_open_outlined,
-    selectedIcon: Icons.menu_open,
-    builder: (_) => const AdminListScreen(resource: 'nav-pages', label: 'Navigation Pages'),
-  ),
-  StaffModule(
     id: 'settings',
     label: 'System Settings',
     group: 'Settings',

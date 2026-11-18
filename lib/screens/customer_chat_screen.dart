@@ -103,8 +103,9 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                             decoration: BoxDecoration(
                               color: mine
                                   ? Theme.of(context).colorScheme.primary
-                                  : context.fieldFill,
+                                  : context.card,
                               borderRadius: BorderRadius.circular(16),
+                              border: mine ? null : Border.all(color: context.hairline),
                             ),
                             child: Text(
                               '${row['message'] ?? ''}',
