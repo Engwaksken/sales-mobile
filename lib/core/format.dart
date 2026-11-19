@@ -55,15 +55,15 @@ String formatDate(dynamic value, {bool withTime = false}) {
   return '$day, $hh:$mm';
 }
 
-/// A readable date range: "16 Nov 2026", "1 Nov – 16 Nov 2026" or
-/// "20 Dec 2025 – 5 Jan 2026" (the year is shown once when both share it).
+/// A readable date range: "16 Nov 2026", "1 Nov - 16 Nov 2026" or
+/// "20 Dec 2025 - 5 Jan 2026" (the year is shown once when both share it).
 String formatDateRange(DateTime start, DateTime end) {
   String day(DateTime d) => '${d.day} ${_months[d.month - 1]}';
   if (start.year == end.year && start.month == end.month && start.day == end.day) {
     return '${day(start)} ${start.year}';
   }
-  if (start.year == end.year) return '${day(start)} – ${day(end)} ${end.year}';
-  return '${day(start)} ${start.year} – ${day(end)} ${end.year}';
+  if (start.year == end.year) return '${day(start)} - ${day(end)} ${end.year}';
+  return '${day(start)} ${start.year} - ${day(end)} ${end.year}';
 }
 
 /// yyyy-mm-dd for API query strings.

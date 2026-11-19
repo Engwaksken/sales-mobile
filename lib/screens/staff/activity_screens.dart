@@ -129,7 +129,7 @@ class _ActivityLogScreenState extends State<ActivityLogScreen> {
                           for (final t in top)
                             ActionChip(
                               avatar: const Icon(Icons.person_outline, size: 16),
-                              label: Text('${t['user_name'] ?? 'User'} · ${t['total']}'),
+                              label: Text('${t['user_name'] ?? 'User'} | ${t['total']}'),
                               onPressed: () => setState(() {
                                 flaggedOnly = true;
                                 userId = int.tryParse('${t['user_id']}');
@@ -168,7 +168,7 @@ class _LogCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final flagged = row['flagged'] == true;
-    final who = [row['user_name'], titleCase('${row['user_role'] ?? ''}')].where((s) => s != null && '$s'.isNotEmpty).join(' · ');
+    final who = [row['user_name'], titleCase('${row['user_role'] ?? ''}')].where((s) => s != null && '$s'.isNotEmpty).join(' | ');
 
     return Card(
       color: flagged ? context.dangerSoft : null,
@@ -198,7 +198,7 @@ class _LogCard extends StatelessWidget {
                     ],
                     const SizedBox(height: 4),
                     Text(
-                      '$who · ${formatDate(row['created_at'], withTime: true)} · ${titleCase('${row['source'] ?? ''}')}',
+                      '$who | ${formatDate(row['created_at'], withTime: true)} | ${titleCase('${row['source'] ?? ''}')}',
                       style: TextStyle(color: context.faint, fontSize: 12),
                     ),
                   ],
@@ -218,7 +218,7 @@ class _LogDetail extends StatelessWidget {
   final Map<String, dynamic> row;
 
   static String _value(dynamic v) {
-    if (v == null || '$v'.isEmpty) return '—';
+    if (v == null || '$v'.isEmpty) return '-';
     if (v is num) return formatNumber(v);
     final n = num.tryParse('$v');
     return n != null ? formatNumber(n) : '$v';
@@ -278,7 +278,7 @@ class _LogDetail extends StatelessWidget {
                               ? Text.rich(
                                   TextSpan(children: [
                                     TextSpan(text: _value(old), style: TextStyle(color: context.danger, decoration: TextDecoration.lineThrough)),
-                                    const TextSpan(text: '  →  '),
+                                    const TextSpan(text: '  to  '),
                                     TextSpan(text: _value(now), style: TextStyle(color: context.success, fontWeight: FontWeight.w800)),
                                   ]),
                                   textAlign: TextAlign.right,

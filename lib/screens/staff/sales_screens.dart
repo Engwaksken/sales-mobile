@@ -105,7 +105,7 @@ class _SalesScreenState extends State<SalesScreen> {
           caption: [
             row['customer_name'],
             formatDate(row['sale_date']),
-          ].where((s) => s != null && '$s'.isNotEmpty).join(' · '),
+          ].where((s) => s != null && '$s'.isNotEmpty).join(' | '),
           amount: money(row['total_amount']),
           status: '${row['payment_status']}',
           statusLabel: saleStatuses[row['payment_status']],
@@ -236,7 +236,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                 child: FilledButton.icon(
                   onPressed: recordPayment,
                   icon: const Icon(Icons.payments),
-                  label: Text('Record payment · ${money(balance)} due'),
+                  label: Text('Record payment (${money(balance)} due)'),
                 ),
               ),
             )
@@ -281,7 +281,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                             style: const TextStyle(fontWeight: FontWeight.w700),
                           ),
                           subtitle: Text(
-                            '${formatNumber(item['quantity'])} × ${money(item['price'])}',
+                            '${formatNumber(item['quantity'])} x ${money(item['price'])}',
                           ),
                           trailing: Text(
                             money(item['total']),
@@ -326,7 +326,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                             dense: true,
                             leading: const Icon(Icons.receipt_long),
                             title: Text(
-                              '${p['receipt_no'] ?? 'Receipt'} · ${p['method'] ?? ''}',
+                              '${p['receipt_no'] ?? 'Receipt'} | ${p['method'] ?? ''}',
                             ),
                             subtitle: Text(
                               formatDate(p['created_at'], withTime: true),
@@ -452,7 +452,7 @@ class _RecordPaymentSheetState extends State<RecordPaymentSheet> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
             ),
             Text(
-              '${widget.sale['invoice_no']} · balance ${money(balance)}',
+              '${widget.sale['invoice_no']} | balance ${money(balance)}',
               style: TextStyle(color: context.muted),
             ),
             const SizedBox(height: 14),
@@ -579,7 +579,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           row['invoice_no'],
           row['customer_name'] ?? 'Walk-in',
           row['method'],
-        ].where((s) => s != null).join(' · '),
+        ].where((s) => s != null).join(' | '),
         caption: formatDate(row['created_at'], withTime: true),
         amount: money(row['amount']),
         status: '${row['status']}',

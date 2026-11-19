@@ -97,11 +97,11 @@ class _StockScreenState extends State<StockScreen> with SingleTickerProviderStat
                     final price = row['selling_price'];
                     return RecordCard(
                       title: '${row['product_name'] ?? 'Product #${row['product_id']}'}',
-                      subtitle: [row['branch_name'], row['supplier_name']].where((s) => s != null && '$s'.isNotEmpty).join(' · '),
+                      subtitle: [row['branch_name'], row['supplier_name']].where((s) => s != null && '$s'.isNotEmpty).join(' | '),
                       caption: [
                         price == null ? 'No selling price' : 'Sells at ${money(price)}',
                         if (row['expiry_date'] != null) 'Expires ${formatDate(row['expiry_date'])}',
-                      ].join(' · '),
+                      ].join(' | '),
                       amount: '${formatNumber(qty)} ${row['unit_type'] ?? ''}'.trim(),
                       status: qty <= 0 ? 'cancelled' : (qty <= 5 ? 'pending' : 'active'),
                       statusLabel: qty <= 0 ? 'Out' : (qty <= 5 ? 'Low' : 'In stock'),
@@ -117,8 +117,8 @@ class _StockScreenState extends State<StockScreen> with SingleTickerProviderStat
                   emptyIcon: Icons.report_gmailerrorred,
                   itemBuilder: (context, row) => RecordCard(
                     title: '${row['product_name'] ?? 'Product'}',
-                    subtitle: [row['branch_name'], row['reason']].where((s) => s != null && '$s'.isNotEmpty).join(' · '),
-                    caption: '${formatDate(row['created_at'], withTime: true)}${row['recorded_by'] != null ? ' · ${row['recorded_by']}' : ''}',
+                    subtitle: [row['branch_name'], row['reason']].where((s) => s != null && '$s'.isNotEmpty).join(' | '),
+                    caption: '${formatDate(row['created_at'], withTime: true)}${row['recorded_by'] != null ? ' | ${row['recorded_by']}' : ''}',
                     amount: '-${formatNumber(row['quantity'])}',
                     status: 'pending',
                     statusLabel: '${row['type_label'] ?? row['type']}',
@@ -139,7 +139,7 @@ Future<Map<String, dynamic>?> pickStockProduct(BuildContext context) => pickReco
       title: 'Choose product',
       path: '/staff/stock/products',
       label: (r) => '${r['name']}',
-      sublabel: (r) => [r['sku'], r['barcode']].where((s) => s != null && '$s'.isNotEmpty).join(' · '),
+      sublabel: (r) => [r['sku'], r['barcode']].where((s) => s != null && '$s'.isNotEmpty).join(' | '),
     );
 
 class _ProductField extends StatelessWidget {

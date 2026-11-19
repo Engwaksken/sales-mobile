@@ -91,7 +91,7 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text('If left blank: "Fuel – Shell Bugolobi"'),
+        find.text('If left blank: "Fuel - Shell Bugolobi"'),
         findsOneWidget,
       );
 

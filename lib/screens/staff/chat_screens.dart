@@ -189,7 +189,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                           if (staff && m['sender_name'] != null)
                             Text('${m['sender_name']}', style: TextStyle(color: scheme.onPrimary.withValues(alpha: .75), fontSize: 11, fontWeight: FontWeight.w700)),
                           Text(
-                            m['message']?.toString() ?? (m['has_attachment'] == true ? '[Attachment — open on the website]' : ''),
+                            m['message']?.toString() ?? (m['has_attachment'] == true ? '[Attachment: open on the website]' : ''),
                             style: TextStyle(color: staff ? scheme.onPrimary : context.ink),
                           ),
                           const SizedBox(height: 3),

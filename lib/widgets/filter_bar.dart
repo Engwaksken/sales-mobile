@@ -166,7 +166,7 @@ class DateRangeFilter extends FilterField {
     return DatePreset.matching(range)?.label ?? formatDateRange(range.start, range.end);
   }
 
-  /// The dates written out, e.g. "1 Nov – 16 Nov 2026".
+  /// The dates written out, e.g. "1 Nov - 16 Nov 2026".
   String describeDates(Object? value) {
     final range = value as DateTimeRange?;
     return range == null ? 'Any time' : formatDateRange(range.start, range.end);

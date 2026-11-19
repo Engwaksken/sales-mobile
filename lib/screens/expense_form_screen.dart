@@ -34,7 +34,7 @@ String? matchPaymentMethod(String text, List<String> methods) {
 
 /// New expense: scan a receipt or fill the form. Payment method and category are
 /// picked from lists; a new category can be typed and is saved for next time.
-/// The title is optional (the server writes "Category – payee/date").
+/// The title is optional (the server writes "Category - payee/date").
 class ExpenseFormScreen extends StatefulWidget {
   const ExpenseFormScreen({super.key, this.onSaved});
 
@@ -175,8 +175,8 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         ? newCategory.text.trim()
         : (category ?? '');
     final who = payee.text.trim();
-    if (cat.isEmpty) return 'Category – date';
-    return '$cat – ${who.isNotEmpty ? who : formatDate(date.toIso8601String())}';
+    if (cat.isEmpty) return 'Category - date';
+    return '$cat - ${who.isNotEmpty ? who : formatDate(date.toIso8601String())}';
   }
 
   Future<void> save() async {

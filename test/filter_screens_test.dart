@@ -64,7 +64,7 @@ void main() {
       expect(server.lastQuery('/staff/sales'), {'status': 'paid', 'from': '2026-11-01', 'to': '2026-11-15', 'page': 1});
       expect(badge(tester), '2');
       expect(tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Paid')).selected, isTrue);
-      expect(find.text('1 Nov – 15 Nov 2026'), findsOneWidget);
+      expect(find.text('1 Nov - 15 Nov 2026'), findsOneWidget);
 
       await removeChip(tester, 'date');
       expect(server.lastQuery('/staff/sales'), {'status': 'paid', 'page': 1});

@@ -276,9 +276,9 @@ class _CustomerOrderDetailScreenState extends State<CustomerOrderDetailScreen> {
                   children: [
                     _row(
                       'Delivery Address',
-                      '${order['address'] ?? order['delivery_location'] ?? '—'}',
+                      '${order['address'] ?? order['delivery_location'] ?? '-'}',
                     ),
-                    _row('Payment Method', '${order['payment_method'] ?? '—'}'),
+                    _row('Payment Method', '${order['payment_method'] ?? '-'}'),
                     _row('Amount Paid', 'UGX ${order['amount_paid'] ?? 0}'),
                     _row('Balance', 'UGX ${order['balance_amount'] ?? 0}'),
                   ],

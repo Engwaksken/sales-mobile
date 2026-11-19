@@ -140,7 +140,7 @@ class _PosScreenState extends State<PosScreen> {
                     children: [
                       const Icon(Icons.shopping_cart_checkout),
                       const SizedBox(width: 10),
-                      Text('Checkout · $itemCount item${itemCount == 1 ? '' : 's'}'),
+                      Text('Checkout ($itemCount item${itemCount == 1 ? '' : 's'})'),
                       const Spacer(),
                       Text(money(subtotal)),
                     ],
@@ -196,7 +196,7 @@ class _PosScreenState extends State<PosScreen> {
                                 final inCart = cart[p['product_id']]?.quantity ?? 0;
                                 return RecordCard(
                                   title: '${p['name']}',
-                                  subtitle: '${formatNumber(p['available'])} in stock${p['sku'] != null ? ' · ${p['sku']}' : ''}',
+                                  subtitle: '${formatNumber(p['available'])} in stock${p['sku'] != null ? ' | ${p['sku']}' : ''}',
                                   amount: money(p['price']),
                                   leading: CircleAvatar(
                                     backgroundColor: inCart > 0 ? Theme.of(context).colorScheme.primary : null,
@@ -329,7 +329,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
       path: '/staff/pos/customers',
       query: {if (widget.branchId != null) 'branch_id': widget.branchId},
       label: (r) => '${r['name'] ?? 'Customer #${r['id']}'}',
-      sublabel: (r) => [r['phone'], r['email']].where((s) => s != null && '$s'.isNotEmpty).join(' · '),
+      sublabel: (r) => [r['phone'], r['email']].where((s) => s != null && '$s'.isNotEmpty).join(' | '),
     );
     if (row != null) setState(() => customer = row);
   }
@@ -436,7 +436,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
               icon: saving
                   ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.check),
-              label: Text('Complete sale · ${money(total)}'),
+              label: Text('Complete sale (${money(total)})'),
             ),
           ],
         ),

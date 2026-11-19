@@ -51,7 +51,7 @@ class CatalogConfig {
   /// Categories, suppliers and expense categories appear in other forms' pick-lists.
   final bool refreshesLookups;
 
-  static String _join(List<dynamic> parts) => parts.where((p) => p != null && '$p'.isNotEmpty).join(' · ');
+  static String _join(List<dynamic> parts) => parts.where((p) => p != null && '$p'.isNotEmpty).join(' | ');
 
   static final categories = CatalogConfig(
     resource: 'categories',
@@ -391,7 +391,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         itemBuilder: (context, row) => RecordCard(
           leading: _Thumb(url: row['image_url']?.toString()),
           title: '${row['name']}',
-          subtitle: [row['category_name'], row['sku']].where((s) => s != null && '$s'.isNotEmpty).join(' · '),
+          subtitle: [row['category_name'], row['sku']].where((s) => s != null && '$s'.isNotEmpty).join(' | '),
           caption: '${formatNumber(row['stock_quantity'])} in stock',
           status: row['is_active'] == true ? 'active' : 'inactive',
           onTap: () => open(row),

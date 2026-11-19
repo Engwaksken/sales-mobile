@@ -273,7 +273,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                       subtitle: Text(
-                        '${s['customer_name'] ?? 'Walk-in'} · ${formatDate(s['sale_date'])}',
+                        '${s['customer_name'] ?? 'Walk-in'} | ${formatDate(s['sale_date'])}',
                       ),
                       trailing: Text(
                         money(s['total_amount']),
@@ -311,7 +311,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                       subtitle: Text(
-                        '${o['customer_name'] ?? ''} · ${o['status_label'] ?? ''}',
+                        '${o['customer_name'] ?? ''} | ${o['status_label'] ?? ''}',
                       ),
                       trailing: Text(
                         money(o['total_amount']),

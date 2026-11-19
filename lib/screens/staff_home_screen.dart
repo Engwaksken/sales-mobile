@@ -593,7 +593,7 @@ class StaffMoreScreen extends StatelessWidget {
                     child: Padding(
                       padding: EdgeInsets.only(bottom: 8),
                       child: Text(
-                        'View only · make changes on the website',
+                        'View only. Make changes on the website.',
                         style: TextStyle(
                           fontSize: 12,
                           color: context.muted,

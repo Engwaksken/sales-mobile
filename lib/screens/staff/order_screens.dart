@@ -54,8 +54,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
       quickFilters: const ['status'],
       itemBuilder: (context, row) => RecordCard(
         title: '${row['order_number'] ?? 'Order #${row['id']}'}',
-        subtitle: [row['customer_name'], row['phone']].where((s) => s != null && '$s'.isNotEmpty).join(' · '),
-        caption: '${formatDate(row['created_at'], withTime: true)} · ${titleCase('${row['payment_status'] ?? ''}')}',
+        subtitle: [row['customer_name'], row['phone']].where((s) => s != null && '$s'.isNotEmpty).join(' | '),
+        caption: '${formatDate(row['created_at'], withTime: true)} | ${titleCase('${row['payment_status'] ?? ''}')}',
         amount: money(row['total_amount']),
         status: '${row['status']}',
         statusLabel: '${row['status_label'] ?? ''}',
@@ -175,7 +175,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 child: FilledButton.icon(
                   onPressed: saving ? null : changeStage,
                   icon: const Icon(Icons.swap_horiz),
-                  label: Text('Change stage · ${order['status_label'] ?? ''}'),
+                  label: Text('Change stage (${order['status_label'] ?? ''})'),
                 ),
               ),
             ),
@@ -214,7 +214,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         contentPadding: EdgeInsets.zero,
                         dense: true,
                         title: Text('${item['name']}', style: const TextStyle(fontWeight: FontWeight.w700)),
-                        subtitle: Text('${formatNumber(item['quantity'])} × ${money(item['price'])}'),
+                        subtitle: Text('${formatNumber(item['quantity'])} x ${money(item['price'])}'),
                         trailing: Text(money(item['total']), style: const TextStyle(fontWeight: FontWeight.w800)),
                       );
                     }),
@@ -225,7 +225,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   InfoRow('Total', money(order['total_amount']), bold: true),
                   InfoRow('Paid', money(order['amount_paid'])),
                   InfoRow('Balance', money(order['balance_amount'])),
-                  InfoRow('Payment', '${titleCase('${order['payment_method'] ?? ''}')} · ${titleCase('${order['payment_status'] ?? ''}')}'),
+                  InfoRow('Payment', '${titleCase('${order['payment_method'] ?? ''}')} | ${titleCase('${order['payment_status'] ?? ''}')}'),
                   if (order['sale_id'] != null)
                     Align(
                       alignment: Alignment.centerRight,
@@ -249,7 +249,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           contentPadding: EdgeInsets.zero,
                           dense: true,
                           leading: const Icon(Icons.receipt_long),
-                          title: Text('${r['receipt_number'] ?? 'Receipt'} · ${r['payment_method'] ?? ''}'),
+                          title: Text('${r['receipt_number'] ?? 'Receipt'} | ${r['payment_method'] ?? ''}'),
                           subtitle: Text(formatDate(r['created_at'], withTime: true)),
                           trailing: Text(money(r['amount_paid']), style: const TextStyle(fontWeight: FontWeight.w800)),
                         );

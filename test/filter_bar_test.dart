@@ -115,11 +115,11 @@ void main() {
 
     test('ranges read naturally', () {
       expect(formatDateRange(DateTime(2026, 11, 16), DateTime(2026, 11, 16)), '16 Nov 2026');
-      expect(formatDateRange(DateTime(2026, 11, 1), DateTime(2026, 11, 15)), '1 Nov – 15 Nov 2026');
-      expect(formatDateRange(DateTime(2025, 12, 20), DateTime(2026, 1, 5)), '20 Dec 2025 – 5 Jan 2026');
+      expect(formatDateRange(DateTime(2026, 11, 1), DateTime(2026, 11, 15)), '1 Nov - 15 Nov 2026');
+      expect(formatDateRange(DateTime(2025, 12, 20), DateTime(2026, 1, 5)), '20 Dec 2025 - 5 Jan 2026');
       const date = DateRangeFilter(id: 'date', label: 'Date');
       expect(date.describe(DatePreset.thisMonth.range()), 'This month');
-      expect(date.describe(DateTimeRange(start: DateTime(2026, 11, 2), end: DateTime(2026, 11, 9))), '2 Nov – 9 Nov 2026');
+      expect(date.describe(DateTimeRange(start: DateTime(2026, 11, 2), end: DateTime(2026, 11, 9))), '2 Nov - 9 Nov 2026');
     });
   });
 
@@ -185,7 +185,7 @@ void main() {
     await openSheet(tester);
     await tapVisible(tester, inSheet(find.text('Credit')));
     await tapVisible(tester, inSheet(find.text('Last month')));
-    expect(inSheet(find.text('1 Oct – 31 Oct 2026')), findsOneWidget);
+    expect(inSheet(find.text('1 Oct - 31 Oct 2026')), findsOneWidget);
 
     // A searchable picker for the many-valued filter.
     await tapVisible(tester, inSheet(find.text('All branches')));

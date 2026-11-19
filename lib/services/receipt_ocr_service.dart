@@ -55,7 +55,7 @@ class ReceiptOcrService {
         description: [
           if (payee.isNotEmpty) 'Receipt from $payee',
           if (reference.isNotEmpty) 'Ref: $reference',
-        ].join(' — '),
+        ].join(', '),
         rawText: text,
       );
     } finally {
