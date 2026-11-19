@@ -424,6 +424,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
               const SizedBox(height: 18),
               const _AppearanceCard(),
+              const _BiometricCard(),
               const SizedBox(height: 18),
               Card(
                 child: Column(
@@ -605,6 +606,141 @@ class _AppearanceCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Turns biometric sign-in on or off for this phone. Hidden on phones with no
+/// fingerprint or face enrolled.
+class _BiometricCard extends StatefulWidget {
+  const _BiometricCard();
+
+  @override
+  State<_BiometricCard> createState() => _BiometricCardState();
+}
+
+class _BiometricCardState extends State<_BiometricCard> {
+  bool busy = false;
+
+  String? get _email => context.read<AuthStore>().user?['email']?.toString();
+
+  Future<void> toggle(bool on) async {
+    final auth = context.read<AuthStore>();
+    final messenger = ScaffoldMessenger.of(context);
+    final label = auth.biometricLabel;
+
+    if (!on) {
+      setState(() => busy = true);
+      await auth.disableBiometrics();
+      if (!mounted) return;
+      setState(() => busy = false);
+      messenger.showSnackBar(SnackBar(content: Text('${_cap(label)} sign-in is off on this phone.')));
+      return;
+    }
+
+    final email = _email;
+    if (email == null || email.isEmpty) return;
+    final password = await showDialog<String>(context: context, builder: (_) => _ConfirmPasswordDialog(label: label));
+    if (password == null || !mounted) return;
+
+    setState(() => busy = true);
+    final error = await auth.enableBiometrics(email: email, password: password);
+    if (!mounted) return;
+    setState(() => busy = false);
+    if (error == null) {
+      messenger.showSnackBar(SnackBar(content: Text('${_cap(label)} sign-in is on. Use it next time you sign in.')));
+    } else if (error.isNotEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
+  static String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthStore>();
+    if (!auth.biometricAvailable) return const SizedBox.shrink();
+    final label = auth.biometricLabel;
+    final email = auth.user?['email']?.toString();
+    final onForMe = auth.biometricEnabled && auth.biometricEmail == email;
+    final onForOther = auth.biometricEnabled && !onForMe;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Card(
+        child: SwitchListTile(
+          secondary: Icon(label == 'face' ? Icons.face_outlined : Icons.fingerprint),
+          title: Text('Sign in with $label'),
+          subtitle: Text(
+            onForOther
+                ? 'On for ${auth.biometricEmail}. Turning it on here switches it to your account.'
+                : onForMe
+                    ? 'On for this phone. Signing out keeps it ready for next time.'
+                    : 'Skip typing your password on this phone.',
+            style: TextStyle(color: context.muted, fontSize: 12.5),
+          ),
+          value: onForMe,
+          onChanged: busy ? null : toggle,
+        ),
+      ),
+    );
+  }
+}
+
+class _ConfirmPasswordDialog extends StatefulWidget {
+  const _ConfirmPasswordDialog({required this.label});
+
+  final String label;
+
+  @override
+  State<_ConfirmPasswordDialog> createState() => _ConfirmPasswordDialogState();
+}
+
+class _ConfirmPasswordDialogState extends State<_ConfirmPasswordDialog> {
+  final password = TextEditingController();
+  bool show = false;
+
+  @override
+  void dispose() {
+    password.dispose();
+    super.dispose();
+  }
+
+  void submit() {
+    if (password.text.isEmpty) return;
+    Navigator.pop(context, password.text);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Turn on ${widget.label} sign-in'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Enter your password to confirm it is you.'),
+          const SizedBox(height: 12),
+          TextField(
+            controller: password,
+            autofocus: true,
+            obscureText: !show,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => submit(),
+            decoration: InputDecoration(
+              labelText: 'Password',
+              suffixIcon: IconButton(
+                icon: Icon(show ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                onPressed: () => setState(() => show = !show),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        FilledButton(onPressed: submit, child: const Text('Continue')),
+      ],
     );
   }
 }

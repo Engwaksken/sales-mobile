@@ -23,7 +23,8 @@ class ApiClient {
         onRequest: (options, handler) async {
           final token = sessionToken ?? await storage.read(key: 'auth_token');
 
-          if (token != null && token.isNotEmpty) {
+          // A request may carry its own token (e.g. revoking the biometric one).
+          if (token != null && token.isNotEmpty && !options.headers.containsKey('Authorization')) {
             options.headers['Authorization'] = 'Bearer $token';
           }
 
@@ -69,8 +70,10 @@ class ApiClient {
   Future<Response<dynamic>> post(
     String path, {
     Object? data,
+    String? bearerToken,
   }) {
-    return _send(() => dio.post(path, data: data));
+    final options = bearerToken == null ? null : Options(headers: {'Authorization': 'Bearer $bearerToken'});
+    return _send(() => dio.post(path, data: data, options: options));
   }
 
   Future<Response<dynamic>> put(String path, {Object? data}) {

@@ -21,9 +21,40 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordFocus = FocusNode();
 
   bool rememberMe = true;
+  bool useBiometrics = true;
   bool _busy = false;
+  bool _bioBusy = false;
   bool _attempted = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    // Offer the fingerprint prompt straight away, once per app launch.
+    final auth = context.read<AuthStore>();
+    if (auth.biometricEnabled && auth.biometricAvailable && !auth.biometricAutoPromptUsed) {
+      auth.biometricAutoPromptUsed = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) signInWithBiometrics();
+      });
+    }
+  }
+
+  Future<void> signInWithBiometrics() async {
+    if (_busy || _bioBusy) return;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _bioBusy = true;
+      _error = null;
+    });
+    final error = await context.read<AuthStore>().signInWithBiometrics();
+    // On success the app swaps this screen for the home screen.
+    if (!mounted) return;
+    setState(() {
+      _bioBusy = false;
+      _error = error;
+    });
+  }
 
   @override
   void dispose() {
@@ -44,11 +75,20 @@ class _LoginScreenState extends State<LoginScreen> {
     FocusScope.of(context).unfocus();
     setState(() => _busy = true);
 
-    final result = await context.read<AuthStore>().login(
+    final auth = context.read<AuthStore>();
+    // The app-wide messenger outlives this screen, so the note about
+    // biometric sign-in still shows once the home screen replaces it.
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await auth.login(
           email.text,
           password.text,
           rememberMe: rememberMe,
+          enableBiometrics: _offerBiometrics(auth) && useBiometrics,
         );
+
+    if (result.biometricNotice != null) {
+      messenger.showSnackBar(SnackBar(content: Text(result.biometricNotice!)));
+    }
 
     // On success the app swaps this screen for the home screen.
     if (!mounted) return;
@@ -72,8 +112,16 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  /// Biometric sign-in can be turned on here when the phone supports it and
+  /// it is not already on.
+  bool _offerBiometrics(AuthStore auth) => auth.biometricAvailable && !auth.biometricEnabled;
+
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthStore>();
+    final bioLabel = auth.biometricLabel;
+    final showBioButton = auth.biometricEnabled && auth.biometricAvailable;
+
     return AuthScaffold(
       title: 'Sign in to your account',
       helper: 'Welcome back. Enter your details to continue.',
@@ -142,6 +190,12 @@ class _LoginScreenState extends State<LoginScreen> {
               label: 'Remember me',
               onChanged: (value) => setState(() => rememberMe = value),
             ),
+            if (_offerBiometrics(auth))
+              AuthCheckbox(
+                value: useBiometrics,
+                label: 'Use $bioLabel next time',
+                onChanged: (value) => setState(() => useBiometrics = value),
+              ),
             AuthLinkButton(
               label: 'Forgot password?',
               onPressed: () => Navigator.push(
@@ -160,7 +214,47 @@ class _LoginScreenState extends State<LoginScreen> {
           busy: _busy,
           onPressed: submit,
         ),
+        if (showBioButton) ...[
+          const SizedBox(height: 12),
+          _BiometricButton(
+            label: bioLabel,
+            name: auth.biometricName,
+            busy: _bioBusy,
+            onPressed: _busy ? null : signInWithBiometrics,
+          ),
+        ],
       ],
+    );
+  }
+}
+
+class _BiometricButton extends StatelessWidget {
+  const _BiometricButton({required this.label, required this.name, required this.busy, required this.onPressed});
+
+  final String label;
+  final String? name;
+  final bool busy;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final brand = context.authBrand;
+    final who = (name ?? '').trim();
+    final text = who.isEmpty ? 'Sign in with $label' : 'Sign in as ${who.split(' ').first} with $label';
+
+    return OutlinedButton.icon(
+      onPressed: busy ? null : onPressed,
+      icon: busy
+          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: brand))
+          : Icon(label == 'face' ? Icons.face_outlined : Icons.fingerprint, size: 24),
+      label: Text(text, overflow: TextOverflow.ellipsis),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: brand,
+        side: BorderSide(color: brand, width: 1.5),
+        minimumSize: const Size.fromHeight(52),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
+      ),
     );
   }
 }
